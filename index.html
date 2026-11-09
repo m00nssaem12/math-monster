@@ -73,6 +73,8 @@ body.land #pad{background:none;pointer-events:none}body.land #pad>*{pointer-even
 .side{position:absolute;bottom:7%;height:66%;max-width:36%;aspect-ratio:1}
 .side.me{left:7%}.side.foe{right:7%}
 .side .mon{width:100%;height:100%;display:block;filter:drop-shadow(0 4px 0 #0004);transition:opacity .3s}
+.side.two{z-index:0;opacity:.95}
+.mini{position:absolute;right:6px;width:32%;z-index:3;background:#fff8e4e8;color:var(--ink);border:2px solid var(--ink);border-radius:5px;padding:1px 5px;font-size:11px;line-height:1.35}#mnFoe2{top:6px}#mnMe2{top:44px}
 .plate{position:absolute;top:6px;width:46%;background:#fff8e4f0;color:var(--ink);border:2px solid var(--ink);border-radius:5px;padding:3px 6px;font-size:13px;line-height:1.3;z-index:2}
 .plate.me{left:6px}.plate.foe{right:6px}
 .plate b{font-size:14px}.plate .lv{float:right;font-size:12px}
@@ -92,7 +94,7 @@ body.land #pad{background:none;pointer-events:none}body.land #pad>*{pointer-even
 .orbf.shake{animation:orbsh .55s}@keyframes orbsh{25%{transform:rotate(-24deg)}75%{transform:rotate(24deg)}}
 #bpanel{flex:1;display:flex;flex-direction:column;padding:8px;gap:6px;background:#1c1c3c;min-height:0}
 #bmsg{min-height:56px;font-size:16px;cursor:pointer}
-body.teach::after{content:'🔑 교사 모드';position:fixed;left:50%;top:4px;transform:translateX(-50%);z-index:60;padding:2px 8px;border-radius:6px;background:#2a2030d0;color:#ffd23f;font-size:12px;pointer-events:none}
+body.teach::after{content:'🔑 교사 모드';position:fixed;left:50%;top:0;transform:translateX(-50%);z-index:60;padding:0 6px;border-radius:0 0 6px 6px;background:#2a2030b0;color:#ffd23f;font-size:10px;line-height:15px;pointer-events:none}
 .moves{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .mv{background:var(--pap);color:var(--ink);border:3px solid var(--ink);border-bottom-width:5px;border-radius:6px;padding:6px 8px;text-align:left;min-height:62px;font-size:14px;line-height:1.3}
 .mv:active{transform:translateY(2px);border-bottom-width:3px}.mv:disabled{opacity:.45}
@@ -1970,7 +1972,7 @@ async function endTurnTicks(){
   }
 }
 // ── 라이벌 ──
-const RIVAL={name:'라이벌 한별',at:[1,4,7,10,12],lines:{1:'나도 박사님께 수호수를 받았어. 누가 더 강한지 겨뤄 보자!',4:'지난번엔 방심했어. 이번엔 통분까지 완벽하게 해 왔다고!',7:'어림이 아니라 정확한 답으로 이겨 주겠어.',10:'소수점 하나까지 틀리지 않아. 각오해!',12:'여기까지 왔네. 전당에 가기 전에 마지막 승부다!'},win:{1:'으, 졌다! 다음엔 안 질 거야.',4:'너 실력이 꽤 늘었는걸? 인정할게.',7:'또 졌어…! 나도 더 수련해야겠다.',10:'대단해. 너랑 겨루면서 나도 많이 배웠어.',12:'역시 네가 최고야. 전당에서 꼭 이겨 줘, 내 몫까지!'}};
+const RIVAL={pre:{7:'안개 속에서 나도 많이 틀렸어. 그래도 이번엔 끝까지 풀어 볼래.',10:'요즘 오답 노트를 쓰기 시작했어. 너한테 배운 거야.'},name:'라이벌 한별',at:[1,4,7,10,12],lines:{1:'나도 박사님께 수호수를 받았어. 누가 더 강한지 겨뤄 보자!',4:'지난번엔 방심했어. 이번엔 통분까지 완벽하게 해 왔다고!',7:'어림이 아니라 정확한 답으로 이겨 주겠어.',10:'소수점 하나까지 틀리지 않아. 각오해!',12:'여기까지 왔네. 전당에 가기 전에 마지막 승부다!'},win:{1:'으, 졌다! 다음엔 안 질 거야.',4:'너 실력이 꽤 늘었는걸? 인정할게.',7:'또 졌어…! 나도 더 수련해야겠다.',10:'대단해. 너랑 겨루면서 나도 많이 배웠어.',12:'역시 네가 최고야. 전당에서 꼭 이겨 줘, 내 몫까지!'}};
 const RIVAL_STARTER={1:7,4:1,7:4}; // 플레이어의 첫 동료에게 강하거나 맞서기 좋은 쪽
 function rivalTeam(i){
   const lv=gymLv(i)+1,base=RIVAL_STARTER[sv.starter]||4,[a,b]=REGIONS[i].wild,team=[{sp:rollSp(base,lv),lv}];
@@ -1979,6 +1981,7 @@ function rivalTeam(i){
   return team;
 }
 async function rivalEvent(i){
+  if(RIVAL.pre[i])await say('한별',RIVAL.pre[i]);
   const res=await battleScene({kind:'trainer',foes:rivalTeam(i),units:[REGIONS[i].unit],lvl:Math.min(2,1+Math.floor(i/5)),region:i,name:RIVAL.name,line:RIVAL.lines[i]});
   if(res==='win'){(sv.rivals=sv.rivals||{})[i]=1;persist();await say('한별',RIVAL.win[i]);}
 }
@@ -2023,12 +2026,15 @@ async function goFish(){
 const HIDDEN=[['orb',3],['pot',2],['hint',2],['orb2',1],['pot2',1],['revive',1],['cure',2],['ether',1],['orb3',1]];
 function itemAt(x,y){const M=curMap();return (M.items||[]).find(t=>t.x===x&&t.y===y&&!(sv.found||{})[sv.region+'_'+t.id]);}
 function pickItem(t){
+  if(t.k==='page'){(sv.found=sv.found||{})[sv.region+'_'+t.id]=1;(stories().pages=stories().pages||{})[sv.region]=1;persist();sfx('up');const n=Object.keys(stories().pages).length;
+    run(async()=>{await say('',`찢어진 공책 한 장을 주웠다. 귀퉁이에 「${sv.region}」이라고 적혀 있다.`);await say('',`「${ZERO_PAGES[sv.region-1]}」`);await say('',`제로의 공책 ${n} / ${ZERO_PAGES.length}장. 이야기 수첩에서 다시 읽을 수 있다.`);});return;}
   (sv.found=sv.found||{})[sv.region+'_'+t.id]=1;sv.inv[t.k]=(sv.inv[t.k]||0)+t.n;persist();sfx('catch');
   run(()=>say('',`앗, 뭔가 떨어져 있다!\n${ITEMS[t.k].ic} ${ITEMS[t.k].n} ${t.n}개를 주웠다!`));
 }
-function drawItems(M,i){const t=performance.now()/260;(M.items||[]).forEach(it=>{if((sv.found||{})[i+'_'+it.id])return;const X=it.x*T-camX,Y=it.y*T-camY,g=Math.sin(t+it.id)>0;rect(ctx,'#2b1d1d',X+4,Y+6,8,8);rect(ctx,'#e8604e',X+5,Y+7,6,6);rect(ctx,'#ffd23f',X+7,Y+7,2,6);if(g){rect(ctx,'#fff',X+12,Y+3,2,2);rect(ctx,'#fff',X+2,Y+5,1,1);}});}
+function drawItems(M,i){const t=performance.now()/260;(M.items||[]).forEach(it=>{if((sv.found||{})[i+'_'+it.id])return;const X=it.x*T-camX,Y=it.y*T-camY,g=Math.sin(t+it.id)>0;
+  if(it.k==='page'){rect(ctx,'#2b1d1d',X+3,Y+5,10,9);rect(ctx,'#fff8e4',X+4,Y+6,8,7);rect(ctx,'#a8b0c8',X+5,Y+8,6,1);rect(ctx,'#a8b0c8',X+5,Y+10,4,1);rect(ctx,'#fff8e4',X+11,Y+4,2,2);if(g)rect(ctx,'#fff',X+13,Y+3,2,2);return;}rect(ctx,'#2b1d1d',X+4,Y+6,8,8);rect(ctx,'#e8604e',X+5,Y+7,6,6);rect(ctx,'#ffd23f',X+7,Y+7,2,6);if(g){rect(ctx,'#fff',X+12,Y+3,2,2);rect(ctx,'#fff',X+2,Y+5,1,1);}});}
 // ── 도감 서식지 ──
-function habitatOf(id){let r=id;for(let i=1;i<SP.length;i++)if(SP[i].evo===r){r=i;i=0;}if(FIRST.includes(r))return '알에서 태어나요';if(id===LEGEND)return '수호의 전당';const out=REGIONS.filter(x=>x.wild&&x.wild.includes(r)).map(x=>x.name);if(FISH.includes(r))out.push('물가 낚시');return out.join(', ')||'알려지지 않음';}
+function habitatOf(id){let r=id;for(let i=1;i<SP.length;i++)if(SP[i].evo===r){r=i;i=0;}if(FIRST.includes(r)){const n=Object.keys(NIGHT_STARTER).find(k=>NIGHT_STARTER[k]===r);return '알에서 태어나요'+(n?`, 밤의 ${REGIONS[n].name} (아주 드물게)`:'');}if(id===LEGEND)return '수호의 전당';const out=REGIONS.filter(x=>x.wild&&x.wild.includes(r)).map(x=>x.name);if(FISH.includes(r))out.push('물가 낚시');REGIONS.forEach((x,i)=>{if(x.wild&&nightGuest(i)===r)out.push(`밤의 ${x.name}`);});return out.join(', ')||'알려지지 않음';}
 // ── 속성표 ──
 function chartPage(back){
   const c=(a,d)=>{const v=typeMul(a,d);return `<td style="background:${v>1?'#7be08f':v<1?'#ff9a88':'#fff8e4'};color:#2b1d1d;text-align:center;font-weight:700">${v>1?'◎':v<1?'△':'·'}</td>`;};
@@ -2071,7 +2077,7 @@ async function doTrade(m){
 //  추가 시스템: 지닌 물건·친밀도·날씨·각성·의뢰·수련의 탑·오답 훈련·업적·향
 //  온라인 대전은 공정하도록 물건·친밀도·날씨·각성을 적용하지 않는다
 // ════════════════════════════════════════════════
-const CFG2={heldBand:1.15,heldCharm:.85,heldCap:1.5,luckyCoinPerLv:2,frGood:40,frBest:80,frEndure:.25,frMax:100,frWin:3,frFaint:2,weatherBoost:1.2,weatherChance:.5,awakenNeed:8,awakenPow:150,runSpeed:1.8,repelSteps:100,lureSteps:60,lureMul:3,questCount:3,towerUnlock:1,towerHeal:.2,trainQ:5};
+const CFG2={nightRate:.3,nightStarter:.12,rematchMs:20*3600e3,rematchLv:5,bushBadges:3,rockBadges:6,outbreakRate:.6,outbreakShiny:3,regionDexCoin:300,regionDexItem:['orb2',3],heldBand:1.15,heldCharm:.85,heldCap:1.5,luckyCoinPerLv:2,frGood:40,frBest:80,frEndure:.25,frMax:100,frWin:3,frFaint:2,weatherBoost:1.2,weatherChance:.5,awakenNeed:8,awakenPow:150,runSpeed:1.8,repelSteps:100,lureSteps:60,lureMul:3,questCount:3,towerUnlock:1,towerHeal:.2,trainQ:5};
 Object.assign(ITEMS,{
   band:{n:'힘의 머리띠',ic:'🎀',d:'지니면 주는 피해가 15% 늘어요.',p:400,held:1},charm:{n:'방패 부적',ic:'🧿',d:'지니면 받는 피해가 15% 줄어요.',p:400,held:1},
   berry:{n:'회복 열매',ic:'🍎',d:'지니면 전투마다 한 번, HP가 절반 이하일 때 1/4 회복해요.',p:300,held:1},clear:{n:'맑은 구슬',ic:'🫧',d:'지니면 전투마다 한 번, 상태 이상을 막아요.',p:300,held:1},
@@ -2223,7 +2229,8 @@ const ACH=[
  {id:'tower10',n:'탑의 도전자',d:'수련의 탑 10층 돌파',c:300,f:()=>(sv.towerBest||0)>=10},{id:'tower30',n:'탑의 정복자',d:'수련의 탑 30층 돌파',c:1000,f:()=>(sv.towerBest||0)>=30},
  {id:'fix20',n:'복수의 달인',d:'복수전 도장에서 20번 복수 성공',c:300,f:()=>(sv.trained||0)>=20},{id:'quest10',n:'믿음직한 해결사',d:'의뢰 10개 완료',c:300,f:()=>(sv.questDone||0)>=10}
 ];
-function checkAch(){if(!sv)return[];sv.ach=sv.ach||{};const got=ACH.filter(a=>!sv.ach[a.id]&&a.f());got.forEach(a=>{sv.ach[a.id]=1;sv.coins+=a.c;toast(`🏅 업적 달성: ${a.n}! 💰 ${a.c}코인`,2600);});return got;}
+REGIONS.forEach((r,i)=>{if(r.wild)ACH.push({id:'rdex'+i,n:`${r.name} 박사`,d:`${r.name}의 수호수를 진화형까지 모두 도감에 등록`,c:CFG2.regionDexCoin,item:CFG2.regionDexItem,f:()=>{const x=regionDex(i);return x.n>=x.t;}});});
+function checkAch(){if(!sv)return[];sv.ach=sv.ach||{};const got=ACH.filter(a=>!sv.ach[a.id]&&a.f());got.forEach(a=>{sv.ach[a.id]=1;sv.coins+=a.c;if(a.item){const[k,n]=a.item;sv.inv[k]=(sv.inv[k]||0)+n;toast(`📖 ${a.n}! 수리 박사가 ${ITEMS[k].n} ${n}개와 💰 ${a.c}코인을 보냈어요.`,3200);}else toast(`🏅 업적 달성: ${a.n}! 💰 ${a.c}코인`,2600);});return got;}
 function titleOfSave(){const ids=sv.ach||{},l=ACH.filter(a=>ids[a.id]);return sv.titleSel&&ids[sv.titleSel]?ACH.find(a=>a.id===sv.titleSel).n:l.length?l[l.length-1].n:'새내기 모험가';}
 function cardPage(back){
   checkAch();const acc=sv.total?Math.round(sv.ok/sv.total*100):0,got=Object.keys(sv.ach||{}).length;
@@ -2237,7 +2244,7 @@ function updRunBtn(){const b=$('#hRun');if(b)b.textContent=sv&&sv.running?'🏃'
 // ════════════════════════════════════════════════
 //  재미: 진화 의식·전투 연출·음악·전리품·연승·쓰다듬기·첫 전투 안내
 // ════════════════════════════════════════════════
-const CFG3={evoFirst:10,evoSecond:26,wildEvoGap:5,glowBonus:.05,dropRate:.25,streakEvery:5,streakCoin:60,petGap:30,petFr:2,firstEncounter:.45};
+const CFG3={allyOk:.85,evoFirst:10,evoSecond:26,wildEvoGap:5,glowBonus:.05,dropRate:.25,streakEvery:5,streakCoin:60,petGap:30,petFr:2,firstEncounter:.45};
 // 진화 레벨: 첫 관장을 이길 즈음 첫 진화를 보도록 앞당긴다
 FIRST.forEach(b=>{SP[b].evoLv=CFG3.evoFirst;SP[b+1].evoLv=CFG3.evoSecond;});
 REGIONS.forEach((r,i)=>{if(r.wild)r.wild.forEach(b=>{SP[b].evoLv=wildLv(i)+CFG3.wildEvoGap;});});
@@ -2252,7 +2259,7 @@ async function evolveMon(m){
   const from=SP[m.sp],to=SP[from.evo];if(!to)return;
   bgm(null);sfx('up');
   modal(`<div class="scene"><h3>어? ${from.name}의 모습이…!</h3><div class="evo-flash">${mSVG(m)}</div></div>`);await sleep(1300);
-  const q=makeQuestion(drawBag('allevo',ALL_UNITS),1,false,null,drawTopic);
+  const q=makeQuestion(drawBag('allevo'+onlyTaught(ALL_UNITS).join(),onlyTaught(ALL_UNITS)),1,false,null,drawTopic);
   modal(`<div class="scene"><h3>✨ 진화의 빛을 모아요!</h3><p class="note">풀면 <b style="color:#ffd23f">빛나는 진화</b>로 능력치가 더 올라요. 틀려도 진화해요!</p></div><div id="evoQ" style="display:flex;flex-direction:column;gap:6px;text-align:left"></div><div class="row" style="margin-top:8px"><button class="btn gray" id="evoSkip">그냥 진화하기</button><button class="btn red" id="evoNo">진화 멈추기</button></div>`);
   const res=teacherPass()?(await sleep(600),{ok:true,teach:true}):await Promise.race([askQuestion($('#evoQ'),q,{quiet:true,label:'진화'}),new Promise(r=>{$('#evoSkip').onclick=()=>{q.cancel();r({skip:true});};$('#evoNo').onclick=()=>{q.cancel();r({skip:true,stop:true});};})]);
   if(res.stop){m.evoStop=m.lv;closeModal();persist();return false;}
@@ -2424,6 +2431,27 @@ const STORY={
  12:{enter:['구름 위의 섬. 마지막 결정이 희미하게 빛나고 있다.','제로의 목소리: 「가능성은 언제나 반반이 아니다. 끝까지 보여 다오.」'],guard:'단장님은 흔들리고 있어… 하지만 나는 끝까지 지운다! 네가 이길 가능성은 0이야!',guardWin:'가능성이 0이 아니었잖아… 내가 졌어.',badge:'열두 결정이 모두 빛나기 시작했어! 이제 수호의 전당으로 가렴. 네 차례야.',town:['주사위가 멈추지 않아요.','전당에 오르는 사람은 정말 오랜만이래요.']},
  13:{enter:['열두 결정이 전당을 비춘다. 입구에 낯익은 사람이 서 있다.','제로: 「…내 공책이다. 오답으로 가득하지. 처음으로 다시 펼쳐 보려 한다.」','제로: 「챔피언이 되어 보여 다오. 틀림을 품은 사람이 얼마나 강한지.」'],town:['전당 수호자들은 열두 결정의 힘을 모두 쓴대요.']}
 };
+// 배지를 받은 뒤: 지우개단이 물러나며 남기는 말, 그 뒤 주민들이 하는 말
+const STORY_AFTER={
+ 1:['괄호를 다시 세우다니… 단장님이 가만 안 두실걸!','표지판 계산 순서가 돌아왔어요! 괄호 먼저, 그다음 곱셈!'],
+ 2:['열매가 다시 똑같이 나뉘잖아? 이건 반칙이야!','열매를 친구들이랑 똑같이 나눠 먹었어요!'],
+ 3:['배들이 같은 시간에 떠나잖아… 철수다, 철수!','분모를 맞추니 배 시간표가 한눈에 보여요.'],
+ 4:['…오늘은 물러나지. 하지만 지운 건 다시 돌아오지 않는다.','모래 지도에 거리가 다시 생겼어요!'],
+ 5:['메아리가 짝을 찾았어… 내 계획이!','강아지랑 다리 수 짝이 다시 맞아요. 메아리도 돌아왔어요!'],
+ 6:['경계선을 다시 그리다니, 크윽!','공식으로 재 보니 우리 밭이 딱 이만큼이었네요.'],
+ 7:['안개가 걷힌다… 숨을 곳이 없어!','끝자리가 또렷해졌어요. 올림인지 버림인지 이제 알겠어요.'],
+ 8:['곱할수록 작아지는 게 절망만은 아니라는 건가…','눈보라가 그쳤어요. 진분수를 곱하면 작아진다는 것도 배웠어요!'],
+ 9:['거울이 똑바로 비추잖아? 어떻게 된 거야!','호수에 비친 제 모습이 다시 똑같아요.'],
+ 10:['소수점이 제자리로… 폭발이 멈췄다고?','온도계가 정확해졌어요. 소수점 한 칸이 이렇게 중요하다니!'],
+ 11:['…가거라. 마지막 결정은 구름 위에 있다.','보이지 않던 모서리까지 다 보여요!'],
+ 12:['가능성이 0이 아니었어… 단장님께 뭐라고 하지.','구름 위에 열두 번째 빛이 돌아왔어요!']
+};
+// 제로의 찢어진 공책: 지역마다 한 장씩 숨어 있다 (장 번호 = 지역 번호)
+const ZERO_PAGES=['3학년 받아쓰기 시험 날. 칠판 앞에서 7×8을 54라고 말했다. 다들 웃었다.','그날부터 손을 들지 않았다. 틀리지 않으려면 말하지 않으면 된다.','수리 박사님 연구소에 들어갔다. 수호수는 내가 틀려도 웃지 않는다.','박사님이 말했다. \'틀린 답에도 길이 있단다.\' 나는 그 말이 싫었다.','결정의 힘을 연구하다 알았다. 결정이 사라지면 문제도, 틀림도 사라진다.','박사님은 반대했다. 나는 연구소를 나왔다. 공책도 두고 왔다.','지우개단을 만들었다. 모두 틀린 적이 있는 아이들이었다.','말소가 물었다. \'단장님, 틀림이 없어지면 우리도 웃을 수 있나요?\' 대답하지 못했다.','호수에 비친 내 얼굴이 3학년 그날과 똑같았다.','그 아이는 틀려도 다시 일어난다. 왜 나는 그러지 못했을까.','7×8=56. 몇 번이고 다시 써 본다. 손이 떨리지 않는다.','다음 장은 비워 둔다. 다시 풀어 볼 자리니까.'];
+// 한별: 지역 4에서 소거에게 진 뒤 주인공을 만난다
+const HB_SCENE={8:{pre:['이번엔 둘이서 가자! 내가 왼쪽, 네가 오른쪽!'],post:'봤지? 약속 지켰어. 우리 꽤 좋은 짝꿍인데?',ally:true},4:{pre:['…너 왔구나. 나, 소거한테 졌어. 받아내림 문제에서 자꾸 틀렸거든.','틀릴 때마다 머리가 하얘져. 너는 안 그래?'],post:'틀려도 다시 풀면 되는 거였구나. 고마워. 다음엔 내가 너를 도와줄게.'}};
+// 챔피언이 된 뒤 관장들이 하는 말
+const LEADER_POST={1:'챔피언이 된 걸 축하해. 괄호처럼 순서를 지키며 걸어온 너답구나.',2:'숲의 열매가 해마다 고르게 열려. 네가 지켜 준 덕분이야.',3:'오늘도 배들이 제시간에 떠나. 챔피언, 언제든 항구에 놀러 와!',4:'사막의 거리를 다시 잴 수 있게 됐어. 네 발자국도 지도에 남겼단다.',5:'모든 것에는 짝이 있지. 너와 수호수처럼 말이야.',6:'넓이를 재듯 네 성장도 재 보고 싶어. 정말 많이 컸구나.',7:'안개가 걷힌 늪은 이렇게 맑단다. 정확한 답을 찾아 준 덕분이야.',8:'곱할수록 커지는 것도, 작아지는 것도 있지. 네 실력은 늘 커졌고!',9:'거울 호수에 비친 챔피언의 얼굴, 처음 왔을 때보다 훨씬 당당해.',10:'화산이 잠잠해. 소수점 하나도 놓치지 않던 너를 기억할게.',11:'보이지 않던 모서리까지 다 본 너라면, 어떤 문제도 풀 수 있을 거야.',12:'챔피언이 될 가능성은 0이 아니었지. 처음부터 말이야.'};
 const ENDING_LINES=[
  ['챔피언 아라','훌륭해. 너는 놓친 주문을 지우지 않고, 다시 풀어서 이겨 냈구나.'],
  ['제로','…나는 오답을 지우려 했지. 네 다시 도전 수첩에는 네가 걸어온 길이 다 있더군.'],
@@ -2517,8 +2545,8 @@ function storyEnter(i){
   const s=STORY[i];if(!s||busy)return;const st=stories();if(st.seen[i])return;st.seen[i]=1;
   run(async()=>{await cine([{arena:i,title:REGIONS[i].name,sub:CHAP(i)}],{skip:false});for(const t of s.enter)await say('',t.replace(/^(제로): /,''));persist();if(i===1&&errandStage()===1)await catchDemo();});
 }
-async function storyBadge(i){const s=STORY[i];if(s&&s.badge)await say(REGIONS[i].leader[0],s.badge);}
-function townLine(n,i){const s=STORY[i];const k=tHash(n.x,n.y);if(s&&s.town&&(sv.townI=(sv.townI||0)+1)%3)return s.town[k%s.town.length];return TIPS[(i+k)%TIPS.length];}
+async function storyBadge(i){const s=STORY[i];if(s&&s.badge)await say(REGIONS[i].leader[0],s.badge);const a=STORY_AFTER[i];if(a){const nm=guardName(i);await say('',`수련관 밖에서 ${nm}${hj(nm,'이가')} 결정의 빛을 보고 물러난다.`);await say(nm,a[0]);}}
+function townLine(n,i){const s=STORY[i];const k=tHash(n.x,n.y);if(sv.badges[i]&&STORY_AFTER[i]&&k%2===0)return STORY_AFTER[i][1];if(s&&s.town&&(sv.townI=(sv.townI||0)+1)%3)return s.town[k%s.town.length];return TIPS[(i+k)%TIPS.length];}
 // 첫 라이벌전: 수호수를 받자마자 벌어진다. 져도 이야기는 계속된다
 async function firstRival(sp){
   await say('수리 박사',`${SP[sp].name}, 좋은 선택이야!\n주문을 풀면 기술이 성공하고, 틀리면 실패한단다.`);
@@ -2542,16 +2570,19 @@ const guardName=i=>STORY[i].boss===2?'단장 제로':STORY[i].boss?(i===4?'간�
 async function guardEvent(i){
   if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요. 쉼터에 먼저 들러요!');
   if(i===1&&errandStage()<3)return say(guardName(i),errandStage()===2?'뭐야, 꼬마잖아. 수련관은 지금 못 들어가! 볼일이 있으면 네 박사한테나 가 봐.':'수련관은 지금 못 들어가! 상점 심부름이나 다녀오시지, 꼬마야.');
+  const hb=HB_SCENE[i],st0=stories();if(hb&&!st0['hb'+i]){for(const t of hb.pre)await say('한별',t);st0['hb'+i]=1;persist();}
   const s=STORY[i],nm=guardName(i);await say(nm,s.guard);
-  const res=await battleScene({kind:'trainer',foes:guardTeam(i),units:[REGIONS[i].unit],lvl:Math.min(2,1+Math.floor(i/5)),region:i,name:nm});
-  if(res==='win'){stories().g[i]=1;persist();await say(nm,s.guardWin);}
+  const gt=guardTeam(i),ally=hb&&hb.ally?{sp:rollSp(RIVAL_STARTER[sv.starter]||4,gt[gt.length-1].lv),lv:gt[gt.length-1].lv}:null;
+  const res=await battleScene({kind:'trainer',foes:gt,units:[REGIONS[i].unit],lvl:Math.min(2,1+Math.floor(i/5)),region:i,name:nm,ally});
+  if(res==='win'){stories().g[i]=1;persist();await say(nm,s.guardWin);if(hb)await say('한별',hb.post);}
 }
 async function endingStory(){await playLines(ENDING_LINES);}
 // 이야기 수첩
 function storyPage(back){
   const st=stories(),ch=[[0,'프롤로그','결정을 노리는 지우개단. 수리 박사에게 첫 수호수를 받고 모험을 시작했다.']];
   for(let i=1;i<=LAST_REGION;i++)if(st.seen[i])ch.push([i,REGIONS[i].name,(STORY[i].enter[0])+(sv.badges[i]?' 🏅 결정을 지켜 냈다.':'')]);
-  page(`<div class="topbar"><h2>📕 이야기 수첩</h2></div><button class="btn wide" id="stOp" style="margin-bottom:8px">🎬 처음 장면 다시 보기</button>${ch.map(c=>`<div class="wnote"><b>${c[1]}</b><br>${c[2]}</div>`).join('')}${sv.champ?'<div class="wnote"><b>에필로그</b><br>지우개단은 해산했고, 제로는 오답 공책을 다시 펼쳤다. 세상의 시계가 다시 움직인다.</div>':''}${backBtn()}`);
+  const pg=st.pages||{},pn=Object.keys(pg).length,book=`<div class="wnote"><b>📓 제로의 찢어진 공책 (${pn} / ${ZERO_PAGES.length})</b>${pn?ZERO_PAGES.map((t,k)=>pg[k+1]?`<br>${k+1}. ${t}`:`<br>${k+1}. <span style="opacity:.5">??? (${REGIONS[k+1].name}에 떨어져 있다)</span>`).join(''):'<br>지역 곳곳에 누군가의 공책 쪽이 떨어져 있대요.'}</div>`;
+  page(`<div class="topbar"><h2>📕 이야기 수첩</h2></div><button class="btn wide" id="stOp" style="margin-bottom:8px">🎬 처음 장면 다시 보기</button>${book}${ch.map(c=>`<div class="wnote"><b>${c[1]}</b><br>${c[2]}</div>`).join('')}${sv.champ?'<div class="wnote"><b>에필로그</b><br>지우개단은 해산했고, 제로는 오답 공책을 다시 펼쳤다. 세상의 시계가 다시 움직인다.</div>':''}${backBtn()}`);
   $('#pgB').onclick=back;$('#stOp').onclick=()=>cine(OPENING);
 }
 // ════════════════════════════════════════════════
@@ -2578,7 +2609,7 @@ function buildInterior(kind,i){
   if(kind==='home')npcs.push({k:'mom',x:9,y:4,face:'down'});
   if(kind==='rest')npcs.push({k:'nurse',x:6,y:2,talk:[6,4],face:'down'});
   if(kind==='shop')npcs.push({k:'clerk',x:6,y:2,talk:[6,4],face:'down'});
-  if(kind==='lab')npcs.push({k:'prof',x:6,y:3,talk:[6,4],face:'down'});
+  if(kind==='lab')npcs.push({k:'prof',x:6,y:3,talk:[6,4],face:'down'},{k:'zero',x:10,y:5,face:'left'});
   if(kind==='gym'){npcs.push({k:'leader',x:6,y:2,talk:[6,3],face:'down'},{k:'trainer',id:'g1',x:2,y:6,face:'right'},{k:'trainer',id:'g2',x:10,y:9,face:'left'});}
   return{kind,g,w,h,npcs,doors:{},objs:[],region:i};
 }
@@ -2665,6 +2696,7 @@ async function interiorEvent(n){
   if(n.k==='prof')return labEvent();
   if(n.k==='leader')return gymEvent();
   if(n.k==='mom')return momEvent();
+  if(n.k==='zero')return say('제로','박사님 공책 옆자리를 빌렸다. 오늘은 분수의 나눗셈을 다시 풀고 있지.');
 }
 const objectTalk={B:()=>say('','내 침대다. 아직 조금 따뜻하다.'),T:()=>say('','엄마가 차려 둔 아침밥이 있다. 맛있어 보인다!'),K:()=>say('',pick(['『수호수 도감 첫걸음』이 꽂혀 있다.','『틀려도 괜찮아, 다시 풀면 돼』라는 책이다.','오래된 수학 공책들이 빼곡하다.'])),L:()=>say('','화분의 잎이 싱그럽다.'),O:()=>say('수리 박사',sv.party.length?'결정의 힘을 담아 둔 유리병이란다. 수호수가 그 빛을 따라왔지.':'안쪽의 세 수호수 중에서 함께 떠날 친구를 고르렴.'),P:()=>openFromWorld(()=>partyPage()),Q:()=>openFromWorld(()=>questPage(endMenu)),V:()=>say('',`받침대에 새겨져 있다.\n「${REGIONS[sv.region].name} 수련관 — 관장 ${(REGIONS[sv.region].leader||['?'])[0]}」`),S:()=>say('',pick(['수호수 간식이 가득하다.','책이 빼곡히 꽂혀 있다.','맛있어 보이는 열매가 있다.'])),M:()=>say('','알 수 없는 기계가 윙윙거린다.'),I:()=>say('','부엌에서 고소한 냄새가 난다. 엄마가 요리를 하셨나 보다.'),F:()=>say('','푹신한 의자다. 잠깐 앉아 쉬고 싶다.')};
 /** 확인 버튼: 앞 칸의 사람·물체에게 말을 건다. 계산대 너머도 닿는다 */
@@ -2716,7 +2748,7 @@ async function catchCard(m,isNew){
   const s=SP[m.sp];
   await nickPrompt(m,`<div class="scene">${isNew?`<h3>📖 도감에 새로 등록!</h3>`:'<h3>동료가 되었어요!</h3>'}${mSVG(m)}<h3>No.${String(s.id).padStart(2,'0')} ${s.name} ${typeTag(s.type)}${m.shiny?' ✨':''}</h3><p class="note">${s.desc}</p><p class="note">별명을 지어 줄까요?</p></div>`);
 }
-async function showBadge(i){const r=REGIONS[i],n=Object.keys(sv.badges).length;sfx('win');await ask(`<div class="scene"><div class="badge-big">🏅</div><h2>${r.name} 배지를 손에 넣었다!</h2><p>수의 결정 ${n} / 12개를 지켜 냈어요.</p><div class="badges" style="justify-content:center;margin-top:8px">${Array.from({length:12},(_,k)=>`<span class="${sv.badges[k+1]?'on':''}">🏅</span>`).join('')}</div></div>`,[{t:'좋아!',v:1}]);}
+async function showBadge(i){cloudBackup(true).then(c=>{if(c)persist();});const r=REGIONS[i],n=Object.keys(sv.badges).length;sfx('win');await ask(`<div class="scene"><div class="badge-big">🏅</div><h2>${r.name} 배지를 손에 넣었다!</h2><p>수의 결정 ${n} / 12개를 지켜 냈어요.</p><div class="badges" style="justify-content:center;margin-top:8px">${Array.from({length:12},(_,k)=>`<span class="${sv.badges[k+1]?'on':''}">🏅</span>`).join('')}</div></div>`,[{t:'좋아!',v:1}]);}
 function tint(hex,k){const n=parseInt(hex.slice(1),16),f=c=>Math.round(c+(255-c)*k).toString(16).padStart(2,'0');return '#'+[n>>16,(n>>8)&255,n&255].map(f).join('');}
 // ════════════════════════════════════════════════
 //  도트 그래픽: 직접 찍은 수호수·아이콘·타일·건물·전투 배경
@@ -3017,7 +3049,9 @@ function fitBattle(){
 function setQ(on){if(Q_MODE===on)return;Q_MODE=on;$('#battle').classList.toggle('qm',on);fitBattle();}
 addEventListener('resize',fitBattle);addEventListener('resize',()=>uiScale());
 /** 수호수를 전투 배경의 발판 위에 세운다 */
-function fitSprites(){const a=$('#arena');if(!a)return;const h=a.clientHeight||260,w=a.clientWidth||400,mx=(k,kw)=>Math.max(64,Math.floor(Math.min(h*k,w*kw)/32)*32),me=mx(.72,.42),fo=mx(.52,.3);[['#sdMe',me,.25,.95],['#sdFoe',fo,.742,.665]].forEach(([s,v,cx,cy])=>{const e=$(s);if(!e)return;e.style.width=v+'px';e.style.height=v+'px';e.style.maxWidth='none';e.style.top='auto';e.style.right='auto';e.style.left=Math.round(cx*w-v/2)+'px';e.style.bottom=Math.round((1-cy)*h-v*.05)+'px';});}
+function fitSprites(){const a=$('#arena');if(!a)return;const h=a.clientHeight||260,w=a.clientWidth||400,mx=(k,kw)=>Math.max(64,Math.floor(Math.min(h*k,w*kw)/32)*32),me=mx(.72,.42),fo=mx(.52,.3),two=!!$('#sdMe2'),me2=mx(.5,.3),fo2=mx(.4,.24);
+  // 2대2에서는 넷이 겹치지 않게 조금 작게, 짝꿍은 한 걸음 뒤에 세운다
+  (two?[['#sdMe',mx(.6,.34),.2,.97],['#sdMe2',me2,.43,.86],['#sdFoe',fo,.8,.67],['#sdFoe2',fo2,.6,.6]]:[['#sdMe',me,.25,.95],['#sdFoe',fo,.742,.665]]).forEach(([s,v,cx,cy])=>{const e=$(s);if(!e)return;e.style.width=v+'px';e.style.height=v+'px';e.style.maxWidth='none';e.style.top='auto';e.style.right='auto';e.style.left=Math.round(cx*w-v/2)+'px';e.style.bottom=Math.round((1-cy)*h-v*.05)+'px';});}
 // 트레이너 등장
 function kidURL(sheet,dir){const s=sheet[dir][0],c=document.createElement('canvas');c.width=s.width;c.height=s.height;c.getContext('2d').drawImage(s,0,0);return c.toDataURL();}
 const TR_SPR={};
@@ -3074,10 +3108,12 @@ const KID_LEGS = {
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let TS=1; // 연출 속도 배율 (테스트에서 0으로 줄인다)
-const sleep=ms=>new Promise(r=>setTimeout(r,ms*TS));
+// 전투 빨리 보기: 전투 중에만 기다리는 시간을 줄인다 (보통·빠르게·아주 빠르게)
+const BSPEED=[1,.6,.35];let battleSpeed=0;const bsp=()=>mode==='battle'?BSPEED[battleSpeed]:1;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms*TS*bsp()));
 const SKEY='suhosu.slots.v1';
 let slots=[null,null,null],cur=-1,sv=null,muted=false;
-function loadSlots(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(Array.isArray(v))slots=[0,1,2].map(i=>{try{return sanitizeSave(v[i]);}catch(e){return null;}});muted=localStorage.getItem(SKEY+'.mute')==='1';textMode=+localStorage.getItem(SKEY+'.txt')||0;teacher=localStorage.getItem(SKEY+'.teacher')==='1';}catch(e){}setTeacher(teacher);}
+function loadSlots(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(Array.isArray(v))slots=[0,1,2].map(i=>{try{return sanitizeSave(v[i]);}catch(e){return null;}});muted=localStorage.getItem(SKEY+'.mute')==='1';textMode=+localStorage.getItem(SKEY+'.txt')||0;teacher=localStorage.getItem(SKEY+'.teacher')==='1';battleSpeed=Math.min(2,+localStorage.getItem(SKEY+'.bspd')||0);UNITS_OFF=new Set(JSON.parse(localStorage.getItem(SKEY+'.unitsOff')||'[]').filter(u=>ALL_UNITS.includes(u)));}catch(e){}setTeacher(teacher);}
 function persist(){try{if(cur>=0)slots[cur]=sv;localStorage.setItem(SKEY,JSON.stringify(slots));}catch(e){}}
 function newSave(name){return{v:1,name,region:0,pos:null,rest:0,party:[],box:[],inv:{...CFG.startInv},coins:CFG.startCoins,badges:{},visited:{0:1},seen:{},caught:{},stats:{},wrong:[],trainers:{},elite:0,champ:false,legend:false,dexGot:{},ok:0,total:0,story:{g:{},seen:{},errand:0},created:Date.now()};}
 // ── 저장 점검: 저장 코드나 저장소에서 온 값은 믿지 않고, 화면에 쓰기 전에 형태를 바로잡는다 ──
@@ -3218,7 +3254,8 @@ const pn=()=>$('#bpanel');
 function setPanel(h){setQ(false);pn().innerHTML=josaFix(h);}
 let textMode=0;
 // 교사 모드: 전투·진화의 주문을 문제 없이 성공으로 처리한다. 이 기기에 계속 켜져 있고, 풀이 기록에는 남지 않는다. 온라인 대전은 그대로 문제를 낸다
-const TEACHER_PW='M00N';let teacher=false;
+// 비밀번호는 해시로만 둔다 (코드를 열어 봐도 바로 보이지 않게)
+const TEACHER_H='1oir8gh',pwHash=t=>{let h=2166136261;for(const c of 'suhosu:'+t){h^=c.codePointAt(0);h=Math.imul(h,16777619)>>>0;}return h.toString(36);};let teacher=false;
 const teacherPass=()=>teacher&&!(typeof B!=='undefined'&&B&&B.online);
 function setTeacher(on){teacher=on;try{localStorage.setItem(SKEY+'.teacher',on?'1':'0');}catch(e){}document.body.classList.toggle('teach',on);}
 /** 글자를 한 자씩 보여 준다. finish()를 부르면 바로 다 보여 준다 */
@@ -3231,7 +3268,7 @@ function typeInto(el){
   tm=setInterval(()=>{if(i>=chars.length){finish();return;}chars[i++].style.visibility='';},ms);
   return{done:p,finish,active:()=>on};
 }
-async function bMsg(t,ms=850){setPanel(`<div class="win" id="bmsg"><div>${t}</div></div>`);const el=$('#bmsg'),ty=typeInto(el.firstChild);let r,tm;const w=new Promise(x=>r=x);el.onclick=()=>{ty.finish();r();};ty.done.then(()=>{tm=setTimeout(r,ms*TS*.72);});await w;clearTimeout(tm);ty.finish();}
+async function bMsg(t,ms=850){setPanel(`<div class="win" id="bmsg"><div>${t}</div></div>`);const el=$('#bmsg'),ty=typeInto(el.firstChild);let r,tm;const w=new Promise(x=>r=x);el.onclick=()=>{ty.finish();r();};ty.done.then(()=>{tm=setTimeout(r,ms*TS*.72*bsp());});await w;clearTimeout(tm);ty.finish();}
 function orbRow(side){const list=side==='me'?sv.party:B.kind==='wild'||B.online?null:B.foes;if(!list||B.online)return '';return `<div class="orbs">${Array.from({length:side==='me'?CFG.partyMax:list.length},(_,i)=>`<i class="${!list[i]?'n':list[i].hp<=0?'x':''}"></i>`).join('')}</div>`;}
 function plateHTML(m,side){return plateBody(m,side)+orbRow(side);}
 function plateBody(m,side){const s=statOf(m),p=Math.max(0,m.hp)/s.hp,sp=SP[m.sp];return `<b>${nameOf(m)}${m.shiny?' ✨':''}</b><span class="lv">Lv.${m.lv}</span><br>${typeTag(sp.type)} ${statusTag(m)}<div class="hpw"><div class="hpf" style="width:${p*100}%;background:${bars(p)}"></div></div><span class="hpn">${Math.max(0,m.hp)} / ${s.hp}</span>${side==='me'&&!B.online?`<div class="xpw"><div class="xpf" style="width:${Math.min(100,m.xp/xpNeed(m.lv)*100)}%"></div></div>`:''}`;}
@@ -3256,7 +3293,10 @@ function drawBag(key,all,test=()=>true){
 }
 const drawTopic=(u,wantInput)=>drawBag('t'+u,UNIT_TOPIC[u],t=>!wantInput||INPUT_TOPICS.has(t));
 /** 이번 문제의 단원: mixEvery번에 한 번은 전체 단원 주머니에서, 나머지는 이곳 단원에서 */
-function nextUnit(all,home,mixEvery){sv.qn=(sv.qn||0)+1;return sv.qn%mixEvery===0?drawBag('all'+all.length+all[0],all):drawBag('home'+home.join(),home);}
+// 배운 단원만: 교사 모드에서 끈 단원은 문제로 내지 않는다. 남는 단원이 없으면 켜진 단원 전체, 그것도 없으면 원래 목록을 쓴다
+let UNITS_OFF=new Set();
+function onlyTaught(list){const l=list.filter(u=>!UNITS_OFF.has(u));if(l.length)return l;const on=ALL_UNITS.filter(u=>!UNITS_OFF.has(u));return on.length?on:list;}
+function nextUnit(all,home,mixEvery){all=onlyTaught(all);home=onlyTaught(home);sv.qn=(sv.qn||0)+1;return sv.qn%mixEvery===0?drawBag('all'+all.join(),all):drawBag('home'+home.join(),home);}
 function battleUnit(){return nextUnit(ALL_UNITS,B.units,CFG.mixEvery[B.kind]||2);}
 function battleLvl(){return B.lvl!=null?B.lvl:0;}
 function askBattleQ(move,input,label){if(teacherPass()){fxAnswer(true);return Promise.resolve({ok:true,ms:0});}const q=makeQuestion(battleUnit(),battleLvl(),input,weakTopic,drawTopic);return askQuestion(pn(),q,{hint:true,quiet:true,label,onHint:()=>persist()}).then(r=>{record(q,r.ok);if(r.ok){sv.coins+=CFG.coinCorrect;fxAnswer(true);}noteQuick(r.ok);persist();return r;});}
@@ -3265,8 +3305,68 @@ function askBattleQ(move,input,label){if(teacherPass()){fxAnswer(true);return Pr
  * 전투 시작. cfg: {kind:'wild'|'trainer'|'gym'|'elite', foes:[{sp,lv}], units:[..], lvl, region, name, line, onWin}
  * @returns 'win'|'lose'|'run'|'catch'
  */
+// ════════════════════════════════════════════════
+//  2대2 태그 배틀: 내 수호수 + 한별의 수호수 vs 상대 둘
+//  1대1 엔진(doMove·foeChoose·endTurnTicks)을 그대로 쓰고, 행동마다 B.me·B.foe가 가리키는 수호수를 바꾼다
+// ════════════════════════════════════════════════
+async function runDouble(cfg){
+  const foes=cfg.foes.map(f=>rollIndiv(makeMon(f.sp,f.lv))),stm=new Map(),stOf=m=>{if(!m)return{combo:0,b:0,guard:false};if(!stm.has(m))stm.set(m,{combo:0,b:0,guard:false});return stm.get(m);};
+  let al=rollIndiv(makeMon(cfg.ally.sp,cfg.ally.lv));al.nick=`한별의 ${SP[al.sp].name}`;
+  const fs=[foes[0],foes[1]||null];let nextF=2,shownMe=null,shownFoe=null;
+  const party=function(){return sv.party[this.meI];},mine=()=>sv.party[B.meI],alive=l=>l.filter(x=>x&&x.hp>0);
+  B={...cfg,foes,meI:firstAlive(sv.party),foeI:0,st:{me:null,foe:null},me:party,foe(){return fs[0];},online:false,fought:new Set(),double:true};
+  B.fought.add(B.meI);foes.forEach(f=>markSeen(f.sp));B.weather=null;B.foePots=CFG5.foePots[cfg.kind]||0;
+  const ar=$('#arena');ar.insertAdjacentHTML('beforeend','<div class="side me two" id="sdMe2"></div><div class="side foe two" id="sdFoe2"></div><div class="mini" id="mnFoe2"></div><div class="mini" id="mnMe2"></div>');fitSprites();
+  // 뒤에 선 짝꿍: 작게 그리고 오른쪽 위 작은 이름표에 HP를 보인다
+  const back=()=>{const pm=alive([mine(),al]).find(x=>x!==shownMe),pf=alive(fs).find(x=>x!==shownFoe),bar=m=>{const p=Math.max(0,m.hp)/statOf(m).hp;return `<span class="hpw" style="display:block"><span class="hpf" style="display:block;width:${p*100}%;background:${bars(p)}"></span></span>`;};
+    $('#sdMe2').innerHTML=pm?mSVG(pm,{flip:true}):'';const im=$('#sdMe2 img');if(im&&pm)setMonSrc(im,pm.sp,{back:true,shiny:pm.shiny});$('#sdFoe2').innerHTML=pf?mSVG(pf):'';
+    $('#mnMe2').innerHTML=pm?`<b>${nameOf(pm)}</b>${bar(pm)}`:'';$('#mnMe2').style.display=pm?'':'none';$('#mnFoe2').innerHTML=pf?`<b>상대 ${SP[pf.sp].name}</b>${bar(pf)}`:'';$('#mnFoe2').style.display=pf?'':'none';};
+  // 이번 행동의 두 수호수를 앞에 세운다
+  const aim=(a,b)=>{B.me=a&&a===mine()?party:()=>a;B.foe=()=>b;B.st.me=stOf(a);B.st.foe=stOf(b);
+    if(a&&a!==shownMe){shownMe=a;$('#sdMe').innerHTML=mSVG(a,{flip:true});setSide('me',a);}if(b&&b!==shownFoe){shownFoe=b;$('#sdFoe').innerHTML=mSVG(b);setSide('foe',b);}back();updPlates();};
+  // 한별: 가장 잘 듣는 공격 기술을 고르고, 가끔 주문을 놓친다
+  const allyMove=t=>{const ms=al.moves.map(x=>MOVES[x.id]).filter(m=>m.pow>0);if(!ms.length)return MOVES.tackle;return ms.sort((x,y)=>y.pow*typeMul(y.type,SP[t.sp].type)-x.pow*typeMul(x.type,SP[t.sp].type))[0];};
+  const pickTarget=()=>new Promise(res=>{const l=alive(fs);setPanel(`<div class="win" style="padding:6px 12px;font-size:14px">누구를 공격할까요?</div><div class="acts">${l.map((f,k)=>`<button class="btn ${k?'blue':''}" data-tg="${k}">${SP[f.sp].name} (HP ${Math.max(0,f.hp)}/${statOf(f).hp})</button>`).join('')}</div>`);pn().querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>res(l[+b.dataset.tg]));});
+  try{
+    setArena(cfg.region);showScr('battle');$('#battle').scrollTop=0;$('#sdMe').innerHTML='';$('#sdFoe').innerHTML='';
+    if(TS)await vsSplash(cfg);
+    await bMsg(`${hjSubj(cfg.name)} 둘이서 승부를 걸어 왔다!${cfg.line?`<br>“${cfg.line}”`:''}`,1800);
+    aim(mine(),fs[0]);cry(fs[0].sp);await bMsg(`상대는 ${SP[fs[0].sp].name}${fs[1]?`와(과) ${SP[fs[1].sp].name}`:''}!`,900);
+    await bMsg(`가랏, ${nameOf(mine())}! 한별도 ${SP[al.sp].name}을(를) 내보냈다!`,1100);cry(mine().sp);
+    while(true){
+      const t0=alive(fs)[0];aim(mine(),t0);
+      const act=await chooseAction();
+      if(act.type==='run')await bMsg('지우개단을 두고 도망칠 수는 없다!',800);
+      const acts=[];
+      if(act.type==='move'){const t=act.move.pow>0&&alive(fs).length>1?await pickTarget():alive(fs)[0];acts.push({side:'me',m:mine(),mv:act.move,ok:act.ok,t});}
+      if(al&&al.hp>0){const t=pick(alive(fs));acts.push({side:'ally',m:al,mv:allyMove(t),ok:Math.random()<CFG3.allyOk,t});}
+      for(const f of alive(fs)){const t=pick(alive([mine(),al]));aim(t,f);acts.push({side:'foe',m:f,mv:foeChoose(),ok:true,t});}
+      const rk=m=>m.fx==='fpot'?3:m.fx==='guard'?2:m.prio?1:0;acts.sort((a,b)=>rk(b.mv)-rk(a.mv)||spdOf(b.m)-spdOf(a.m));
+      [mine(),al,...fs].forEach(m=>{if(m)stOf(m).guard=false;});
+      for(const a of acts){
+        if(a.m.hp<=0||(a.side==='me'&&a.m!==mine()))continue;
+        const pool=a.side==='foe'?alive([mine(),al]):alive(fs);let t=a.t&&a.t.hp>0&&pool.includes(a.t)?a.t:pool[0];if(!t)break;
+        if(a.side==='foe'){aim(t,a.m);await doMove('foe',a.mv,true);}
+        else if(a.side==='ally'){aim(a.m,t);B.online=true;try{await doMove('me',a.mv,a.ok);}finally{B.online=false;}}
+        else{aim(a.m,t);await doMove('me',a.mv,a.ok);}
+        back();
+      }
+      if(mine().hp>0||fs[0])aim(mine(),fs[0]&&fs[0].hp>0?fs[0]:alive(fs)[0]||null);if(B.foe())await endTurnTicks();
+      if(al&&al.hp>0&&fs[1]&&fs[1].hp>0){aim(al,fs[1]);await endTurnTicks();}
+      // 쓰러진 수호수 정리
+      for(let k=0;k<2;k++){const f=fs[k];if(!f||f.hp>0)continue;
+        aim(mine(),f);animSide('foe','faint',500);fxFaint('foe');await bMsg(`${hjSubj(SP[f.sp].name)} 쓰러졌다!`,700);B.foeI=foes.indexOf(f);await giveXp(f);
+        fs[k]=nextF<foes.length?foes[nextF++]:null;shownFoe=null;if(fs[k]){aim(mine(),fs[k]);cry(fs[k].sp);await bMsg(`${B.name}의 다음 수호수: ${SP[fs[k].sp].name}!`,900);}}
+      if(!alive(fs).length){back();return 'win';}
+      if(al&&al.hp<=0){aim(al,alive(fs)[0]);animSide('me','faint',500);await bMsg(`${hjSubj(nameOf(al))} 쓰러졌다… 한별: "미안, 나머지는 부탁해!"`,1100);al=null;shownMe=null;}
+      if(mine().hp<=0){aim(mine(),alive(fs)[0]);animSide('me','faint',500);await bMsg(`${hjSubj(nameOf(mine()))} 쓰러졌다…`,700);
+        if(firstAlive(sv.party)<0){await bMsg('더 싸울 수 있는 동료가 없다…',1000);return 'lose';}
+        B.me=party;B.foe=()=>alive(fs)[0];await switchIn(true);shownMe=null;}
+    }
+  }finally{['#sdMe2','#sdFoe2','#mnFoe2','#mnMe2'].forEach(s=>{const e=$(s);if(e)e.remove();});fitSprites();B.me=party;B.foe=function(){return this.foes[this.foeI];};}
+}
 async function runBattle(cfg){
-  const foes=cfg.foes.map(f=>rollIndiv(makeMon(f.sp,f.lv),cfg.kind==='wild'?CFG.shinyRate:0));
+  const foes=cfg.foes.map(f=>rollIndiv(makeMon(f.sp,f.lv),cfg.kind==='wild'?CFG.shinyRate*(cfg.shinyMul||1):0));
   B={...cfg,foes,meI:firstAlive(sv.party),foeI:0,st:{me:{combo:0,b:0,guard:false},foe:{combo:0,b:0,guard:false}},me(){return sv.party[this.meI];},foe(){return this.foes[this.foeI];},online:false,fought:new Set()};
   B.fought.add(B.meI);foes.forEach(f=>markSeen(f.sp));B.weather=rollWeather(cfg);B.foePots=CFG5.foePots[cfg.kind]||0;
   setArena(cfg.region);showScr('battle');$('#battle').scrollTop=0;drawSides('both');showHero();const intro=await battleIntro(cfg,foes);
@@ -3434,12 +3534,16 @@ function buildMap(i){
   const addN=(o,a,b)=>{const p=spot(a,b);if(p)npcs.push({...o,x:p[0],y:p[1],face:o.k==='trainer'?['down','up','left','right'][Math.floor(rn()*4)]:'down'});};
   if(i>=1&&i<LAST_REGION){addN({k:'trainer',id:'a'},6,14);addN({k:'trainer',id:'b'},15,27);addN({k:'tip'},2,10);}
   if(i===0){addN({k:'guide'},2,9);addN({k:'tip'},10,18);}
-  if(i===LAST_REGION){addN({k:'legend'},22,28);addN({k:'guide2'},2,8);}
+  if(i===LAST_REGION){addN({k:'legend'},22,28);addN({k:'guide2'},2,8);addN({k:'hbpost'},4,8);}
+  // 길가의 덤불(배지 3개)과 바위(배지 6개): 치우면 안에 숨은 물건이 나온다. 다른 배치가 바뀌지 않게 맨 마지막에 놓는다
+  const obst=[];if(i>=2&&i<LAST_REGION)obst.push(['bush',8,20]);if(i>=5&&i<LAST_REGION)obst.push(['rock',18,30]);
   if(RIVAL.at.includes(i))npcs.push({k:'rival',x:MW-2,y:midE});
   if(i>=1&&i<LAST_REGION){const gk=Object.keys(doors).find(k=>doors[k]==='gym').split(',').map(Number);npcs.push({k:'grunt',x:gk[0],y:gk[1]+1});}
   const signs=[];const addSign=(x,yy,t)=>{if(g[yy]&&g[yy][x]==='.'&&!npcs.some(n=>n.x===x&&n.y===yy)){g[yy][x]='S';signs.push({x,y:yy,t});}};
   if(i>0)addSign(2,midW-1,`← ${REGIONS[i-1].name}`);if(i<LAST_REGION)addSign(MW-3,midE+1,`→ ${REGIONS[i+1].name}`);addSign(1+2,midW+1,`여기는 ${REGIONS[i].name}`);
   const items=[];for(let t=0,id=0;t<60&&id<(i?3:1);t++){const x=ri(2,MW-3),yy=ri(2,MH-3);if(g[yy][x]!=='.'||npcs.some(n=>n.x===x&&n.y===yy)||items.some(q=>q.x===x&&q.y===yy))continue;if(![[1,0],[-1,0],[0,1],[0,-1]].some(([a,b])=>g[yy+b][x+a]===','||g[yy+b][x+a]==='G'))continue;const h=HIDDEN[Math.floor(rn()*HIDDEN.length)];items.push({id:id++,x,y:yy,k:h[0],n:h[1]});}
+  if(i>=1&&i<=ZERO_PAGES.length)for(let t=0;t<200;t++){const x=ri(2,MW-3),yy=ri(2,MH-3);if(g[yy][x]!=='.'||npcs.some(n=>n.x===x&&n.y===yy)||items.some(q=>q.x===x&&q.y===yy))continue;items.push({id:9,x,y:yy,k:'page'});break;}
+  obst.forEach(([k,a,b])=>addN({k},a,b));
   return{g,objs,doors,npcs,midW,midE,items,signs};
 }
 function getMap(i){return MAPS[i]||(MAPS[i]=buildMap(i));}
@@ -3457,7 +3561,7 @@ const NPC_SHEET={
   tip:kidSheet({...PAL_KID,r:'#58b860',R:'#3a8c44',y:'#58b860',Y:'#3a8c44',h:'#a05a30',H:'#c87a48',b:'#6a5a3a'}),
   guide:kidSheet({...PAL_KID,r:'#f4f4f4',R:'#c8c8d4',y:'#f4f4f4',Y:'#c8c8d4',h:'#c8c8d4',H:'#f0f0f0',b:'#4a5a7a'}),
   legend:null
-};NPC_SHEET.guide2=NPC_SHEET.guide;NPC_SHEET.nurse=kidSheet({...PAL_KID,r:'#f490b0',R:'#d86890',y:'#f490b0',Y:'#d86890',h:'#c86a8a',H:'#e890a8',b:'#fff0f4'});NPC_SHEET.clerk=kidSheet({...PAL_KID,r:'#4a90d8',R:'#2f6aa8',y:'#4a90d8',Y:'#2f6aa8',h:'#6a4030',H:'#8a5a40',b:'#30405a'});NPC_SHEET.prof=NPC_SHEET.guide;NPC_SHEET.mom=kidSheet({...PAL_KID,r:'#e88a58',R:'#c06a40',y:'#f8e8c8',Y:'#d8c8a8',h:'#6a4030',H:'#8a5a40',b:'#5a4a6a'});NPC_SHEET.leader=kidSheet({...PAL_KID,r:'#d84848',R:'#a02c2c',y:'#d84848',Y:'#a02c2c',h:'#e8c040',H:'#f8e080',b:'#2a2a3a'});NPC_SHEET.grunt=kidSheet({...PAL_KID,r:'#33333f',R:'#1e1e28',y:'#33333f',Y:'#1e1e28',h:'#22222c',H:'#3a3a48',b:'#22222c'});NPC_SHEET.rival=kidSheet({...PAL_KID,r:'#7a4fc8',R:'#553399',y:'#7a4fc8',Y:'#553399',h:'#c05a8a',H:'#e080a8',b:'#33264f'});
+};NPC_SHEET.guide2=NPC_SHEET.guide;NPC_SHEET.nurse=kidSheet({...PAL_KID,r:'#f490b0',R:'#d86890',y:'#f490b0',Y:'#d86890',h:'#c86a8a',H:'#e890a8',b:'#fff0f4'});NPC_SHEET.clerk=kidSheet({...PAL_KID,r:'#4a90d8',R:'#2f6aa8',y:'#4a90d8',Y:'#2f6aa8',h:'#6a4030',H:'#8a5a40',b:'#30405a'});NPC_SHEET.prof=NPC_SHEET.guide;NPC_SHEET.mom=kidSheet({...PAL_KID,r:'#e88a58',R:'#c06a40',y:'#f8e8c8',Y:'#d8c8a8',h:'#6a4030',H:'#8a5a40',b:'#5a4a6a'});NPC_SHEET.leader=kidSheet({...PAL_KID,r:'#d84848',R:'#a02c2c',y:'#d84848',Y:'#a02c2c',h:'#e8c040',H:'#f8e080',b:'#2a2a3a'});NPC_SHEET.grunt=kidSheet({...PAL_KID,r:'#33333f',R:'#1e1e28',y:'#33333f',Y:'#1e1e28',h:'#22222c',H:'#3a3a48',b:'#22222c'});NPC_SHEET.rival=kidSheet({...PAL_KID,r:'#7a4fc8',R:'#553399',y:'#7a4fc8',Y:'#553399',h:'#c05a8a',H:'#e080a8',b:'#33264f'});NPC_SHEET.zero=NPC_SHEET.grunt;NPC_SHEET.hbpost=NPC_SHEET.rival;
 // ── 사람 생김새: 같은 몸에 머리 모양·모자·옷·피부색을 얹어 사람마다 다르게 보이게 한다 ──
 const LOOK_DECO={
  long(r,d,p){const k=OL,h=p.h;if(d==='down'){r(k,1,7,3,9);r(h,2,7,1,8);r(k,12,7,3,9);r(h,13,7,1,8);}else if(d==='up'){r(k,3,10,10,7);r(h,4,10,8,6);}else{r(k,9,9,5,8);r(h,10,9,3,7);}},
@@ -3553,13 +3657,15 @@ const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const P={x:2,y:10,tx:2,ty:10,dir:'right',moving:false,t:0,anim:0,queued:null,safe:CFG.encounterGrace};
 const SPEED=5;let mode='title',busy=false,held=[],baked={},camX=0,camY=0;
 function blocked(x,y){const M=curMap(),w=M.w||MW,h=M.h||MH;if(x<0||y<0||x>=w||y>=h)return true;const c=M.g[y][x];if(c==='T'||c==='W'||c==='B'||INT_SOLID.includes(c))return true;return M.npcs.some(n=>n.x===x&&n.y===y&&npcVisible(n));}
-function npcVisible(n){if(n.k==='legend')return sv.champ&&!sv.caught[LEGEND];if(n.k==='rival')return !!sv.badges[sv.region]&&!(sv.rivals||{})[sv.region];if(n.k==='grunt')return !stories().g[sv.region];return true;}
+function npcVisible(n){if(n.k==='zero'||n.k==='hbpost')return !!sv.champ;if(n.k==='bush'||n.k==='rock')return !(sv.cleared||{})[sv.region+n.k];if(n.k==='legend')return sv.champ&&!sv.caught[LEGEND];if(n.k==='rival')return !!sv.badges[sv.region]&&!(sv.rivals||{})[sv.region];if(n.k==='grunt')return !stories().g[sv.region];return true;}
 function enterRegion(i,from){
   IN=null;sv.region=i;sv.visited[i]=1;const M=getMap(i);
   if(from==='W'){P.x=0;P.y=M.midW;P.dir='right';}else if(from==='E'){P.x=MW-1;P.y=M.midE;P.dir='left';}
   else if(from&&from.x!=null){P.x=from.x;P.y=from.y;P.dir=from.dir||'down';}
   else{const dk=Object.keys(M.doors).find(k=>M.doors[k]==='rest')||Object.keys(M.doors)[0],[x,y]=dk?dk.split(',').map(Number):[2,M.midW];P.x=x;P.y=y+1;P.dir='down';}
   P.tx=P.x;P.ty=P.y;P.moving=false;P.t=0;P.queued=null;P.safe=CFG.encounterGrace;updHud();savePos();areaSign(i);
+  const ob=outbreak();if(ob&&ob.r===i)setTimeout(()=>toast(`📣 오늘 이 지역에 ${outbreakName(ob)}이(가) 대량 발생했어요!`,2800),1600);
+  else if(REGIONS[i].wild&&isNight()&&!sv.nightTip){sv.nightTip=1;setTimeout(()=>toast('🌙 밤에는 다른 지역의 수호수가 풀숲에 찾아와요!',2800),1600);}
   storyEnter(i);
 }
 function savePos(){sv.pos=IN?{...IN.back}:{x:P.x,y:P.y,dir:P.dir};persist();}
@@ -3603,15 +3709,29 @@ function stepped(){
   if(c==='G'&&P.safe<=0&&Math.random()<encounterRate()){P.safe=CFG.encounterGrace;run(wildEncounter);}
 }
 function regionUnits(){const u=REGIONS[sv.region].unit;return u?[u]:[1,2,3,4,5,6,7,8,9,10,11,12];}
+// ── 밤 손님: 저녁 8시~새벽 5시에는 먼 지역의 수호수가 찾아오고, 고르지 않은 첫 동료가 드물게 나타난다 ──
+const isNight=()=>{const h=new Date().getHours();return h>=20||h<5;};
+const NIGHT_STARTER={3:1,6:4,9:7};
+const nightGuest=i=>{const r=REGIONS[((i+5)%12)+1];return r&&r.wild?r.wild[1]:null;};
+// ── 대량 발생: 날마다 가 본 지역 하나에서 한 수호수가 많이 나타나고 희귀 색도 더 잘 나온다 (날짜로 정해져 하루 동안 같다) ──
+function outbreak(){
+  if(!sv)return null;const d=new Date(),k=d.getFullYear()*372+d.getMonth()*31+d.getDate(),list=REGIONS.map((r,i)=>i).filter(i=>REGIONS[i].wild&&sv.visited[i]);if(!list.length)return null;
+  const h=tHash(k,77),r=list[h%list.length],w=REGIONS[r].wild;return{r,sp:w[(h>>5)%w.length]};
+}
+const outbreakName=ob=>sv.seen[ob.sp]||sv.caught[ob.sp]?SP[ob.sp].name:'정체 모를 수호수';
+// ── 지역 도감: 그 지역 야생 수호수와 진화형을 모두 등록하면 박사가 보상을 보낸다 (업적으로 처리) ──
+const family=b=>{const f=[];for(let x=b;x&&!f.includes(x);x=SP[x].evo)f.push(x);return f;};
+const regionDex=i=>{const all=(REGIONS[i].wild||[]).flatMap(family);return{n:all.filter(x=>sv.caught[x]).length,t:all.length};};
 async function wildEncounter(){
   if(firstAlive(sv.party)<0){await say('','동료들이 지쳐 있어요. 쉼터에서 쉬어요!');return;}
   const r=REGIONS[sv.region],base=wildLv(sv.region),lv=Math.max(2,base+Math.floor(Math.random()*(CFG.encounterLvSpread+1))-1);
-  sv.wildSeen=1;const fam=pick(r.wild),sp=rollSp(fam,lv);
-  await battleScene({kind:'wild',foes:[{sp,lv}],units:[r.unit],lvl:sv.region>6?1:Math.random()<.6?0:1,region:sv.region});
+  const ob=outbreak(),hot=!!ob&&ob.r===sv.region&&Math.random()<CFG2.outbreakRate,nt=!hot&&isNight()&&Math.random()<CFG2.nightRate,st0=NIGHT_STARTER[sv.region];
+  sv.wildSeen=1;const fam=hot?ob.sp:nt?(st0&&st0!==sv.starter&&Math.random()<CFG2.nightStarter?st0:nightGuest(sv.region)||pick(r.wild)):pick(r.wild),sp=rollSp(fam,lv);
+  await battleScene({kind:'wild',foes:[{sp,lv}],units:[r.unit],lvl:sv.region>6?1:Math.random()<.6?0:1,region:sv.region,shinyMul:hot?CFG2.outbreakShiny:1});
 }
 /** 전투를 돌리고 결과(승패·진화·복귀)를 처리한다 */
 async function battleScene(cfg){
-  savePos();mode='battle';await transition(cfg.kind);bgm(cfg.kind==='gym'||cfg.kind==='elite'||cfg.foes.some(f=>f.sp===LEGEND)?'boss':'battle');const res=await runBattle(cfg);sv.party.concat(sv.box).forEach(m=>{delete m.st;delete m.slpT;});
+  savePos();mode='battle';await transition(cfg.kind);bgm(cfg.kind==='gym'||cfg.kind==='elite'||cfg.foes.some(f=>f.sp===LEGEND)?'boss':'battle');const res=await(cfg.ally?runDouble:runBattle)(cfg);sv.party.concat(sv.box).forEach(m=>{delete m.st;delete m.slpT;});
   if(res==='win'&&cfg.kind!=='wild'){const c=(CFG.coinTrainer*cfg.foes[cfg.foes.length-1].lv)*(cfg.kind==='gym'||cfg.kind==='elite'?3:1);sv.coins+=c;await bMsg(`승리! 💰 ${c}코인을 받았다!`,1000);}
   else if(res==='win'||res==='catch'){const c=CFG.coinWild+CFG.coinPerLv*cfg.foes[0].lv;sv.coins+=c;await bMsg(`💰 ${c}코인 획득!`,650);}
   await runEvolutions();afterBattleHooks(cfg,res);
@@ -3622,6 +3742,7 @@ async function battleScene(cfg){
 async function gymEvent(){
   const i=sv.region,r=REGIONS[i],[nm,title]=r.leader;
   if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요. 쉼터에 먼저 들러요!');
+  if(sv.champ&&LEADER_POST[i])await say(nm,LEADER_POST[i]);
   if(sv.badges[i]){const go=await ask(`<h3>🏅 ${nm} 관장</h3><p>다시 겨뤄 볼까요? 코인과 경험치를 받을 수 있어요.</p>`,[{t:'다시 도전',v:1},{t:'다음에',v:0,cls:'gray'}]);if(!go)return;}
   else{const go=await ask(`<h3>🏛️ ${r.name} 수련관</h3><p>${title} <b>${nm}</b>에게 도전할까요?</p>`,[{t:'도전한다!',v:1},{t:'좀 더 준비할래요',v:0,cls:'gray'}]);if(!go)return;}
   const team=gymTeam(i);
@@ -3665,16 +3786,23 @@ async function npcEvent(n){
   if(n.k==='grunt')return guardEvent(i);
   if(n.k==='tip'){TALK_LOOK=npcLook(n);return say('주민',townLine(n,i));}
   if(n.k==='guide')return say('마을 사람',sv.party.length?(errandStage()<3?'박사님 심부름을 간다고요? 오른쪽 끝 길을 따라가면 괄호 들판이에요.':'오른쪽 끝 길을 따라가면 괄호 들판이 나와요. 잘 다녀와요!'):'오른쪽 연구소(?)의 수리 박사님을 찾아가 보세요!');
+  if(n.k==='bush'||n.k==='rock'){const bush=n.k==='bush',need=bush?CFG2.bushBadges:CFG2.rockBadges,have=Object.keys(sv.badges).length;
+    if(have<need)return say('',bush?`빽빽한 덤불이 가로막고 있다. 배지 ${need}개를 모으면 헤칠 수 있을 것 같다.`:`커다란 바위가 가로막고 있다. 배지 ${need}개를 모으면 밀어낼 수 있을 것 같다.`);
+    const m=sv.party[firstAlive(sv.party)];(sv.cleared=sv.cleared||{})[i+n.k]=1;const[k,c]=bush?['orb2',2]:['orb3',1];sv.inv[k]=(sv.inv[k]||0)+c;persist();sfx('catch');
+    return say('',`${nameOf(m)}${hj(nameOf(m),'이가')} ${bush?'덤불을 헤쳤다!':'바위를 힘껏 밀어냈다!'}\n그 자리에서 ${ITEMS[k].ic} ${ITEMS[k].n} ${c}개를 찾았다!`);}
+  if(n.k==='hbpost')return say('한별','다음 대회는 내가 이길 거야. 그러니까… 계속 같이 수련하자!');
   if(n.k==='guide2')return say('문지기','위쪽 전당에서 가장 강한 수호자들이 기다려요.');
-  if(n.k==='legend'){if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요.');await say('','눈부신 빛 속에서 수호의 근원이 모습을 드러냈다!');const res=await battleScene({kind:'wild',foes:[{sp:LEGEND,lv:60}],units:[1,2,3,4,5,6,7,8,9,10,11,12],lvl:2,region:LAST_REGION});if(res==='catch'||res==='win'){sv.legend=true;persist();}if(res==='win')await say('','수호의 근원이 빛 속으로 물러났다.\n다시 다가가면 또 만날 수 있을 것 같다.');return;}
+  if(n.k==='legend'){if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요.');await say('','열두 결정의 빛이 한곳에 모인다… 빛 속에서 거대한 수호수가 모습을 드러냈다!');await say('수리 박사','모든 수의 근원이라 불리는 수호수야. 네가 틀리고 다시 푼 모든 길을 보고 온 거란다.');const res=await battleScene({kind:'wild',foes:[{sp:LEGEND,lv:60}],units:[1,2,3,4,5,6,7,8,9,10,11,12],lvl:2,region:LAST_REGION});if(res==='catch'||res==='win'){sv.legend=true;persist();}if(res==='win')await say('','수호의 근원이 빛 속으로 물러났다.\n다시 다가가면 또 만날 수 있을 것 같다.');return;}
   if(n.k==='trainer'){
     const id=i+n.id,nm=TR_NAMES[(i*2+({a:0,b:1,g1:5,g2:7}[n.id]||0))%TR_NAMES.length];
-    if(sv.trainers[id])return say(nm,IN?'관장님은 저 안쪽에 계셔. 힘내!':'한 수 배웠어! 네 실력이면 관장님도 이기겠어.');
+    // 이긴 지 하루쯤 지나면 더 강해져서 다시 승부를 건다 (예전 저장은 값이 1이라 바로 다시 겨룰 수 있다)
+    const won=sv.trainers[id],again=!!won&&Date.now()-won>=CFG2.rematchMs;
+    if(won&&!again)return say(nm,IN?'관장님은 저 안쪽에 계셔. 힘내!':'한 수 배웠어! 내일 다시 오면 그땐 안 질 거야.');
     if(firstAlive(sv.party)<0)return say(nm,'동료들이 지쳐 있네. 쉼터에 먼저 다녀와!');
-    await say(nm,pick(TR_LINES));
-    const solo=n.id==='a'||n.id==='g1',lv=wildLv(i)+(solo?1:3),[x,y]=r.wild,team=solo?[{sp:rollSp(x,lv),lv}]:[{sp:rollSp(y,lv-1),lv:lv-1},{sp:rollSp(x,lv),lv}];
+    await say(nm,again?'다시 만났네! 그동안 나도 수련했어. 한 판 더 하자!':pick(TR_LINES));
+    const solo=n.id==='a'||n.id==='g1',lv=Math.min(CFG.maxLevel,wildLv(i)+(solo?1:3)+(again?CFG2.rematchLv:0)),[x,y]=r.wild,team=solo?[{sp:rollSp(x,lv),lv}]:[{sp:rollSp(y,lv-1),lv:lv-1},{sp:rollSp(x,lv),lv}];
     const res=await battleScene({kind:'trainer',foes:team,units:[r.unit],lvl:1,region:i,name:nm});
-    if(res==='win'){sv.trainers[id]=1;persist();await say(nm,'졌다! 정말 강하구나!');}
+    if(res==='win'){sv.trainers[id]=Date.now();persist();await say(nm,again?'또 졌다! 내일 또 도전할 거야!':'졌다! 정말 강하구나!');}
   }
 }
 async function chooseStarter(){
@@ -3709,6 +3837,7 @@ function worldFx(i,M){
 }
 function drawPlayer(px,py){ctx.fillStyle='#00000030';ctx.fillRect(Math.round(px)-camX+3,Math.round(py)-camY+13,10,3);const f=P.moving?1+Math.floor(P.anim*8)%2:0,img=KID[P.dir][f];ctx.drawImage(img,Math.round(px)-camX,Math.round(py)-camY-8);}
 function drawNpc(n){const X=Math.round(n.x*T-camX+(n.ox||0)),Y=Math.round(n.y*T-camY+(n.oy||0));
+  if(n.k==='bush'){drawT(ctx,themeSheet(REGIONS[sv.region].theme),5,X,Y);return;}if(n.k==='rock'){drawX(ctx,XTILE,XT.rock,X,Y);return;}
   if(n.k==='legend'){const t=performance.now()/300;ctx.fillStyle=`rgba(255,220,80,${.45+.25*Math.sin(t)})`;ctx.beginPath();ctx.arc(X+8,Y+6,8+Math.sin(t)*2,0,7);ctx.fill();rect(ctx,'#fff',X+6,Y+4,4,4);return;}
   ctx.fillStyle='#00000030';ctx.fillRect(X+3,Y+13,10,3);const s=NPC_SHEET[npcLook(n)]||NPC_SHEET[n.k]||NPC_SHEET.tip;const done=n.k==='trainer'&&sv.trainers[sv.region+n.id];ctx.drawImage(s[done?'left':(n.face||'down')][0],X,Y-8);
   if(n.alert){rect(ctx,'#fff',X+5,Y-18,6,8);rect(ctx,'#d82000',X+7,Y-17,2,4);rect(ctx,'#d82000',X+7,Y-12,2,1);}
@@ -3763,19 +3892,30 @@ function morePage(){
 }
 function setPage(){
   const sp=['보통','빠름','바로'][textMode];
-  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.'],['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
+  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['cloud',`☁️ 백업 코드: ${cloudOk(sv.cloud)?cloudFmt(sv.cloud):'아직 없음'}`,'눌러서 지금 온라인 백업해요. 기기가 바뀌면 처음 화면의 저장 코드에서 이 코드로 불러와요.'],['bspd',`전투 속도: ${['보통','빠르게','아주 빠르게'][battleSpeed]}`,'전투 연출과 메시지가 넘어가는 시간을 줄여요.'],...(teacher?[['units','📚 배운 단원 고르기',`아직 안 배운 단원을 끄면 그 단원 문제가 나오지 않아요. (켜짐 ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length})`]]:[]),['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.'],['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
+    if(g==='cloud'){toast('☁️ 백업 중…');const c=await cloudBackup(true);persist();toast(c?`☁️ 백업했어요! 코드 ${cloudFmt(c)}`:'인터넷에 연결되지 않아 백업하지 못했어요.',3200);setPage();}
+    if(g==='bspd'){battleSpeed=(battleSpeed+1)%3;try{localStorage.setItem(SKEY+'.bspd',battleSpeed);}catch(e){}setPage();}
+    if(g==='units')unitsPage();
     if(g==='teach'){if(teacher)setTeacher(false);else if(await teacherPrompt()){setTeacher(true);toast('🔑 교사 모드를 켰어요.');}setPage();}
     if(g==='snd'){muted=!muted;try{localStorage.setItem(SKEY+'.mute',muted?'1':'0');}catch(e){}setPage();}
     if(g==='txt'){textMode=(textMode+1)%3;try{localStorage.setItem(SKEY+'.txt',textMode);}catch(e){}setPage();}
     if(g==='back')menuPage();
     if(g==='title'){savePos();const f=window._menuDone;window._menuDone=null;f&&f();mode='title';bgm(null);renderTitle();showScr('title');}});
 }
+/** 교사 모드: 단원마다 켜고 끈다. 이 기기에 저장된다 */
+function unitsPage(){
+  page(`<div class="topbar"><h2>📚 배운 단원 고르기</h2></div><p class="note" style="margin-bottom:6px">끈 단원은 전투·진화·온라인 대전 문제에 나오지 않아요. 지역 수련은 그대로예요.</p><div class="mlist">${ALL_UNITS.map(u=>`<button class="btn ${UNITS_OFF.has(u)?'gray':'blue'}" data-u="${u}">${UNITS_OFF.has(u)?'⬜':'✅'} ${u}단원 · ${UNIT_NAME[u]}</button>`).join('')}</div><div class="row" style="margin-top:8px"><button class="btn gray" id="uAll">모두 켜기</button>${backBtn()}</div>`);
+  const save=()=>{try{localStorage.setItem(SKEY+'.unitsOff',JSON.stringify([...UNITS_OFF]));}catch(e){}};
+  document.querySelectorAll('[data-u]').forEach(b=>b.onclick=()=>{const u=+b.dataset.u;if(UNITS_OFF.has(u))UNITS_OFF.delete(u);else if(UNITS_OFF.size<ALL_UNITS.length-1)UNITS_OFF.add(u);else{toast('적어도 한 단원은 켜 두어야 해요.');return;}save();unitsPage();});
+  $('#uAll').onclick=()=>{UNITS_OFF.clear();save();unitsPage();};$('#pgB').onclick=setPage;
+}
 /** 교사 비밀번호를 받는다. 맞으면 true */
 function teacherPrompt(){return new Promise(res=>{modal(`<h3>🔑 교사 모드</h3><p class="note">선생님 비밀번호를 입력하세요.</p><input class="tx" id="tpIn" type="password" maxlength="12" autocomplete="off"><p class="note" id="tpMsg" style="color:#c0392b;min-height:1.2em"></p><div class="row"><button class="btn gray" id="tpNo">취소</button><button class="btn blue" id="tpYes">확인</button></div>`);
-  const inp=$('#tpIn'),ok=()=>{if(inp.value.trim()===TEACHER_PW){closeModal();res(true);}else{$('#tpMsg').textContent='비밀번호가 달라요.';inp.value='';inp.focus();}};
+  const inp=$('#tpIn'),ok=()=>{if(pwHash(inp.value.trim())===TEACHER_H){closeModal();res(true);}else{$('#tpMsg').textContent='비밀번호가 달라요.';inp.value='';inp.focus();}};
   inp.focus();inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();e.stopPropagation();ok();}};$('#tpYes').onclick=ok;$('#tpNo').onclick=()=>{closeModal();res(false);};});}
 async function savePrompt(){
-  savePos();sfx('ok');await ask(`<h3>💾 저장했어요</h3><p>${esc(sv.name)} · 🏅 ${Object.keys(sv.badges).length}개 · 📖 ${Object.keys(sv.caught).length}종<br>${REGIONS[sv.region].name}</p>`,[{t:'확인',v:1}]);menuPage();
+  savePos();sfx('ok');const cc=await cloudBackup(true);persist();
+  await ask(`<h3>💾 저장했어요</h3><p>${esc(sv.name)} · 🏅 ${Object.keys(sv.badges).length}개 · 📖 ${Object.keys(sv.caught).length}종<br>${REGIONS[sv.region].name}</p>${cc?`<p class="note">☁️ 온라인 백업도 했어요.<br>백업 코드 <b style="font-size:18px;white-space:nowrap">${cloudFmt(cc)}</b><br>기기가 바뀌거나 기록이 지워지면 처음 화면 → 📦 저장 코드에서 이 코드로 불러와요.</p>`:'<p class="note">☁️ 인터넷에 연결되지 않아 이 기기에만 저장했어요.</p>'}`,[{t:'확인',v:1}]);menuPage();
 }
 const backBtn=(id='pgB',t='← 돌아가기')=>`<button class="btn gray wide" id="${id}" style="margin-top:8px">${t}</button>`;
 const hpBar=(hp,mx)=>{const p=Math.max(0,hp)/mx;return `<span class="hpw" style="display:block"><span class="hpf" style="display:block;width:${p*100}%;background:${bars(p)}"></span></span>`;};
@@ -3786,9 +3926,16 @@ function partyPage(){
   page(`<div class="scrn teal"><div class="shead"><span>🐾 동료</span><small>${sv.party.length} / ${CFG.partyMax}</small></div><div class="pgrid">${cells.join('')}${eggs.slice(0,CFG.partyMax-cells.length).join('')}</div><div class="win pmsg">누구를 볼까요?</div><div class="nav2" style="margin-top:8px"><button class="btn blue" id="pBox">📦 보관함 (${sv.box.length})</button><button class="btn gray" id="pgB">← 돌아가기</button></div></div>`);
   document.querySelectorAll('[data-pi]').forEach(b=>b.onclick=()=>monAction(+b.dataset.pi));$('#pgB').onclick=menuPage;$('#pBox').onclick=boxPage;
 }
+// 보관함 보기: 정렬 기준과 이름 찾기는 이번 실행 동안 기억한다
+const BOX_SORT=[['넣은 순',null],['번호',(a,b)=>a.sp-b.sp],['레벨',(a,b)=>b.lv-a.lv],['속성',(a,b)=>SP[a.sp].type.localeCompare(SP[b.sp].type)||a.sp-b.sp]];
+let boxSort=0,boxQ='';
 function boxPage(){
-  page(`<div class="scrn teal"><div class="shead"><span>📦 보관함</span><small>${sv.box.length}마리</small></div>${sv.box.length?`<div class="bgrid">${sv.box.map((m,i)=>`<button class="bcell" data-b="${i}">${mSVG(m,{flip:true})}<div>${nameOf(m)}</div><div>Lv.${m.lv}</div></button>`).join('')}</div>`:'<div class="win">보관함이 비어 있어요.</div>'}${backBtn()}</div>`);
-  document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>monDetail('b'+b.dataset.b));$('#pgB').onclick=partyPage;
+  page(`<div class="scrn teal"><div class="shead"><span>📦 보관함</span><small>${sv.box.length}마리</small></div>${sv.box.length?`<div class="row" style="gap:6px;margin-bottom:6px"><input class="tx" id="bxQ" placeholder="이름으로 찾기" value="${esc(boxQ)}" style="flex:1;min-width:0"><button class="btn gray" id="bxS">정렬: ${BOX_SORT[boxSort][0]}</button></div><div class="bgrid" id="bxG"></div>`:'<div class="win">보관함이 비어 있어요.</div>'}${backBtn()}</div>`);
+  $('#pgB').onclick=partyPage;if(!sv.box.length)return;
+  const grid=()=>{const q=boxQ.trim(),f=BOX_SORT[boxSort][1],list=sv.box.map((m,i)=>({m,i})).filter(({m})=>!q||nameOf(m).includes(q)||SP[m.sp].name.includes(q));if(f)list.sort((x,y)=>f(x.m,y.m)||x.i-y.i);
+    $('#bxG').innerHTML=list.length?list.map(({m,i})=>`<button class="bcell" data-b="${i}">${mSVG(m,{flip:true})}<div>${nameOf(m)}</div><div>Lv.${m.lv}</div></button>`).join(''):'<div class="win" style="grid-column:1/-1">찾는 수호수가 없어요.</div>';
+    document.querySelectorAll('[data-b]').forEach(b=>b.onclick=()=>monDetail('b'+b.dataset.b));};
+  $('#bxQ').oninput=e=>{boxQ=e.target.value;grid();};$('#bxS').onclick=()=>{boxSort=(boxSort+1)%BOX_SORT.length;boxPage();};grid();
 }
 async function monAction(i){
   const m=sv.party[i],opts=[{t:'📋 능력 보기',v:'see'}];
@@ -3862,8 +4009,10 @@ function mapPage(sel=sv.region){
   const r=REGIONS[sel],u=r.unit,vis=sv.visited[sel];
   const uStats=u?UNIT_TOPIC[u].reduce((a,t)=>{const s=sv.stats[t];if(s){a.c+=s.c;a.t+=s.t;}return a;},{c:0,t:0}):null;
   page(`<div class="topbar"><h2>🗺️ 모험 지도</h2><span class="hchip">🏅 ${Object.keys(sv.badges).length} / 12</span></div>
+   ${(()=>{const ob=outbreak();return ob?`<div class="win" style="margin-bottom:6px;padding:6px 10px">📣 오늘의 대량 발생: <b>${REGIONS[ob.r].name}</b> · ${outbreakName(ob)} (희귀 색도 잘 나와요)</div>`:'';})()}
    <div id="wmap" style="aspect-ratio:1/1.05;max-height:66vh;margin:auto"><svg class="ln" viewBox="0 0 100 100" preserveAspectRatio="none">${lines}</svg>${nodes}</div>
    <div class="win" style="margin-top:8px"><h3>${vis?r.name:'아직 가 보지 않은 곳'}</h3>${u?`<p class="note">${vis?`관장 ${r.leader[0]} · ${sv.badges[u]?'🏅 배지 획득':'배지 없음'} · 야생 Lv.${wildLv(sel)} 안팎`:'앞 지역의 배지를 얻으면 갈 수 있어요.'}</p>`:`<p class="note">${sel?'배지 12개를 모으면 도전할 수 있어요.':'수리 박사의 연구소가 있는 마을이에요.'}</p>`}
+   ${vis&&r.wild?(()=>{const x=regionDex(sel);return `<p class="note">📖 지역 도감 ${x.n} / ${x.t}${x.n>=x.t?' 완성!':''}</p>`;})():''}
    <div class="row" style="margin-top:8px"><button class="btn" id="mFly" ${vis&&sel!==sv.region?'':'disabled'}>🕊️ 이곳으로 날아가기</button>${u?`<button class="btn blue" id="mPr">🎯 이 지역에서 수련</button>`:''}</div></div>${backBtn()}`);
   document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>mapPage(+b.dataset.r));$('#pgB').onclick=menuPage;
   const fly=$('#mFly');if(fly)fly.onclick=()=>{const f=window._menuDone;window._menuDone=null;mode='play';showScr('world');f&&f();setTimeout(()=>enterRegion(sel),0);};
@@ -3924,20 +4073,32 @@ function howPage(back){
 const firebaseConfig={apiKey:"AIzaSyCOdpmgB1GSl3PTSx_YgME9lP-ef71KHVE",authDomain:"mystery-54602.firebaseapp.com",databaseURL:"https://mystery-54602-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"mystery-54602",storageBucket:"mystery-54602.firebasestorage.app",messagingSenderId:"765554068901",appId:"1:765554068901:web:6fbd2ef699273752f36c4c"};
 const GAME_TAG='suhosu1';
 const NET={code:null,room:null,listeners:[],notify(){this.listeners.splice(0).forEach(f=>f());}};
-// 처음 온라인 메뉴를 열 때만 불러온다. 실패해도 혼자 플레이는 그대로
+// 처음 온라인 메뉴를 열 때만 불러온다. 실패해도 혼자 플레이는 그대로. 방은 학교 미스터리와 나누려고 mm-rooms/ 아래에 둔다
 async function mpLoad(){
   if(window.MP)return window.MP;
   const U='https://www.gstatic.com/firebasejs/10.12.2/firebase-';
   const[{initializeApp},{getAuth,signInAnonymously},D2]=await Promise.all(['app','auth','database'].map(m=>import(U+m+'.js')));
-  const fa=initializeApp(firebaseConfig),db=D2.getDatabase(fa),{user}=await signInAnonymously(getAuth(fa)),uid=user.uid,rm=c=>D2.ref(db,'rooms/'+c);let un=null,pr=null;
+  const fa=initializeApp(firebaseConfig),db=D2.getDatabase(fa),{user}=await signInAnonymously(getAuth(fa)),uid=user.uid,rm=c=>D2.ref(db,'mm-rooms/'+c);let un=null,pr=null,rc=null;
   window.MP={uid,
     async create(c,cfg){const r=await D2.runTransaction(rm(c),v=>v?undefined:{host:uid,cfg,step:0,rd:1});if(!r.committed)throw Error('이미 있는 방 코드예요.');return this.join(c,true);},
-    async join(c,mine){const s=await D2.get(rm(c));if(!s.exists())throw Error('없는 방 코드예요.');const v=s.val();if(!v.cfg||v.cfg.game!==GAME_TAG)throw Error('수호수 대전 방이 아니에요.');if(!mine&&v.players&&Object.keys(v.players).length>=2&&!v.players[uid])throw Error('방이 가득 찼어요.');this.leave();pr=D2.ref(db,'rooms/'+c+'/players/'+uid);D2.onDisconnect(pr).remove();un=D2.onValue(rm(c),x=>{if(x.exists())mpRoom(x.val());});},
-    leave(){if(un){un();un=null;}if(pr){D2.onDisconnect(pr).cancel();D2.remove(pr).catch(()=>{});pr=null;}},
-    me:(c,o)=>D2.update(D2.ref(db,'rooms/'+c+'/players/'+uid),o),
+    async join(c,mine){const s=await D2.get(rm(c));if(!s.exists())throw Error('없는 방 코드예요.');const v=s.val();if(!v.cfg||v.cfg.game!==GAME_TAG)throw Error('수호수 대전 방이 아니에요.');if(!mine&&v.players&&Object.keys(v.players).length>=2&&!v.players[uid])throw Error('방이 가득 찼어요.');this.leave();rc=c;pr=D2.ref(db,'mm-rooms/'+c+'/players/'+uid);D2.onDisconnect(pr).remove();un=D2.onValue(rm(c),x=>{if(x.exists())mpRoom(x.val());});},
+    // 마지막으로 나가는 사람이 빈 방을 지운다
+    leave(){if(un){un();un=null;}if(pr){const c=rc;D2.onDisconnect(pr).cancel();D2.remove(pr).then(()=>D2.get(rm(c))).then(x=>{if(x.exists()&&!x.val().players)return D2.remove(rm(c));}).catch(()=>{});pr=null;}},
+    saveSet:(c,o)=>D2.set(D2.ref(db,'mm-saves/'+c),o),
+    async saveGet(c){const x=await D2.get(D2.ref(db,'mm-saves/'+c));return x.exists()?x.val():null;},
+    me:(c,o)=>D2.update(D2.ref(db,'mm-rooms/'+c+'/players/'+uid),o),
     start:c=>D2.update(rm(c),{step:1}),
-    turn:(c,n,o)=>D2.set(D2.ref(db,'rooms/'+c+'/players/'+uid+'/turns/'+n),o)};
+    turn:(c,n,o)=>D2.set(D2.ref(db,'mm-rooms/'+c+'/players/'+uid+'/turns/'+n),o)};
   return window.MP;
+}
+// ── 온라인 백업: 학교 기기는 브라우저 기록이 지워질 수 있어서, 저장을 10자리 백업 코드로 서버에 맡긴다 ──
+const CLOUD_A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',cloudFmt=c=>c.slice(0,5)+'-'+c.slice(5),cloudOk=c=>/^[A-Z0-9]{10}$/.test(c||'');let cloudAt=0;
+/** 지금 진행을 서버에 올린다. force가 아니면 3분에 한 번만. 성공하면 백업 코드, 실패하면 null */
+async function cloudBackup(force){
+  if(!sv||(!force&&Date.now()-cloudAt<180000))return null;cloudAt=Date.now();
+  try{if(!cloudOk(sv.cloud))sv.cloud=Array.from({length:10},()=>CLOUD_A[Math.floor(Math.random()*32)]).join('');
+    const mp=await mpLoad();await Promise.race([mp.saveSet(sv.cloud,{d:btoa(encodeURIComponent(JSON.stringify(sv))),t:Date.now()}),sleep(8000).then(()=>{throw Error('timeout');})]);return sv.cloud;}
+  catch(e){console.warn(e);return null;}
 }
 function mpRoom(v){NET.room=v;if(NET.onRoom)NET.onRoom(v);NET.notify();}
 const waitRoom=test=>new Promise(res=>{const chk=()=>{const r=test(NET.room);if(r!==undefined&&r!==null&&r!==false){res(r);return;}NET.listeners.push(chk);};chk();});
@@ -3954,7 +4115,7 @@ async function onlinePage(){
   draw();
 }
 const teamSnap=()=>onlineTeam.map(i=>({sp:sv.party[i].sp,mv:sv.party[i].moves.map(x=>x.id)}));
-function setNetMsg(t){const m=$('#cMsg');if(m)m.textContent=t;else toast(t);}
+function setNetMsg(t){if(/permission/i.test(t))t='온라인 서버가 방을 허락하지 않았어요. 선생님께 알려 주세요.';const m=$('#cMsg');if(m)m.textContent=t;else toast(t);}
 async function hostRoom(range,gameMode){
   NET.traded=false;
   setNetMsg('연결 중…');
@@ -4044,10 +4205,13 @@ function startPlay(fresh){
 }
 function openTransfer(){
   const list=slots.map((s,i)=>s?`<button class="btn gray wide" data-ex="${i}" style="margin-bottom:6px">슬롯 ${i+1} (${esc(s.name)}) 코드 만들기</button>`:'').join('');
-  modal(`<h3>📦 저장 코드</h3><p class="note">코드를 복사해 다른 기기에서 붙여 넣으면 이어서 할 수 있어요.</p>${list}<textarea class="tx" id="trT" placeholder="여기에 코드를 붙여 넣거나, 위에서 코드를 만드세요"></textarea><div class="row"><button class="btn" id="trIn">이 코드 불러오기</button><button class="btn gray" id="trX">닫기</button></div>`);
+  modal(`<h3>📦 저장 코드</h3><p class="note">코드를 복사해 다른 기기에서 붙여 넣으면 이어서 할 수 있어요.</p>${list}<textarea class="tx" id="trT" placeholder="여기에 코드를 붙여 넣거나, 위에서 코드를 만드세요"></textarea><div class="row"><button class="btn" id="trIn">이 코드 불러오기</button><button class="btn gray" id="trX">닫기</button></div><p class="note" style="margin-top:10px">☁️ 온라인 백업 코드(10자리)로 불러오기</p><div class="row"><input class="tx" id="trC" maxlength="11" autocomplete="off" placeholder="예: ABCDE-FGH23" style="flex:1;min-width:0"><button class="btn blue" id="trCI">불러오기</button></div>`);
+  const put=o=>{const e=slots.findIndex(x=>!x);if(e<0){toast('빈 슬롯이 없어요. 하나를 지워 주세요.');return;}slots[e]=o;const c=cur;cur=-1;localStorage.setItem(SKEY,JSON.stringify(slots));cur=c;closeModal();renderTitle();toast('불러왔어요!');};
+  $('#trCI').onclick=async()=>{const c=$('#trC').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(!cloudOk(c)){toast('백업 코드는 10자리예요.');return;}toast('불러오는 중…');
+    try{const v=await(await mpLoad()).saveGet(c);if(!v){toast('그 코드로 저장된 기록이 없어요.');return;}const o=sanitizeSave(JSON.parse(decodeURIComponent(atob(v.d))));if(!o)throw 0;o.cloud=c;put(o);}catch(x){console.warn(x);toast('불러오지 못했어요. 인터넷 연결을 확인해 주세요.');}};
   document.querySelectorAll('[data-ex]').forEach(b=>b.onclick=()=>{$('#trT').value=btoa(encodeURIComponent(JSON.stringify(slots[+b.dataset.ex])));$('#trT').select();try{document.execCommand('copy');toast('복사했어요!');}catch(e){}});
   $('#trX').onclick=closeModal;
-  $('#trIn').onclick=()=>{try{const o=sanitizeSave(JSON.parse(decodeURIComponent(atob($('#trT').value.trim()))));if(!o)throw 0;const e=slots.findIndex(x=>!x);if(e<0){toast('빈 슬롯이 없어요. 하나를 지워 주세요.');return;}slots[e]=o;const c=cur;cur=-1;localStorage.setItem(SKEY,JSON.stringify(slots));cur=c;closeModal();renderTitle();toast('불러왔어요!');}catch(x){toast('코드가 올바르지 않아요.');}};
+  $('#trIn').onclick=()=>{try{const o=sanitizeSave(JSON.parse(decodeURIComponent(atob($('#trT').value.trim()))));if(!o)throw 0;put(o);}catch(x){toast('코드가 올바르지 않아요.');}};
 }
 // ── 입력 연결 ──
 const KEYDIR={ArrowUp:'up',KeyW:'up',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left',ArrowRight:'right',KeyD:'right'};
