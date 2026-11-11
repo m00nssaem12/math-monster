@@ -117,6 +117,7 @@ body.teach::after{content:'🔑';position:fixed;left:50%;top:0;transform:transla
 /* 문제 */
 .qbox{background:var(--pap);color:var(--ink);border:3px solid var(--ink);border-radius:6px;padding:9px 12px;font-size:17px;line-height:1.75}
 .qtop{display:flex;justify-content:space-between;gap:6px;font-size:12px;color:#7a5a30;margin-bottom:2px;line-height:1.3}
+.qsp{border:1px solid #c8a870;background:#fff8e4;border-radius:8px;padding:0 6px;margin-left:4px;cursor:pointer;font-size:1.1em;line-height:1.4;vertical-align:middle}
 .qbox.big .qt{font-size:25px;text-align:center}
 .qt:has(.fr){line-height:2.3}.qbox.big .qt:has(.fr){line-height:1.8}
 .fig{display:flex;justify-content:center;margin-top:5px}.fig-svg{width:100%;height:auto;display:block}
@@ -1388,6 +1389,9 @@ function g_cb_net(){
 // ── 12. 평균과 가능성 ──
 function avgSet(n,lo,hi){let v;do{v=Array.from({length:n},()=>R(lo,hi));}while(v.reduce((a,b)=>a+b,0)%n!==0);return v;}
 function g_av_calc(lvl){
+  // 막대그래프를 읽고 평균 구하기
+  if(Math.random()<.4){const n=R(3,5),v=avgSet(n,2,12),s=v.reduce((a,b)=>a+b,0),m=s/n,labs=['월','화','수','목','금'].slice(0,n);
+    return mk('av_calc',{q:'요일별로 읽은 책의 수를 나타낸 막대그래프예요. 하루에 읽은 책은 평균 몇 권인가요?',fig:barSVG({labs,v,st:1,u:'권'}),correct:m+'권',wrongs:nw(m,[Math.max(...v),Math.min(...v),s],'권'),exp:`(합계) ÷ (요일 수) = (${v.join(' + ')}) ÷ ${n} = ${s} ÷ ${n} = ${m}권`});}
   const n=lvl?R(4,5):R(3,4),v=avgSet(n,lvl?60:2,lvl?100:20),s=v.reduce((a,b)=>a+b,0),m=s/n;
   return mk('av_calc',{q:`${HB(v.join(', '))}의 평균은 얼마인가요?`,correct:String(m),wrongs:nw(m,[Math.floor(s/(n+1)),Math.max(...v),Math.min(...v),Math.floor(s/(n-1))]),exp:`(자료 값의 합) ÷ (자료의 수) = ${s} ÷ ${n} = ${m}`});
 }
@@ -1858,6 +1862,9 @@ function barSVG(D){const H=120,top=Math.max(...D.v)/D.st+1,sy=H/top,W=40+D.labs.
   D.labs.forEach((l,i)=>{const x=44+i*42,h=D.v[i]/D.st*sy;s+=`<rect x="${x}" y="${10+H-h}" width="26" height="${h}" fill="#78b8e8" stroke="${SC}" stroke-width="1.5"/><text x="${x+13}" y="${H+26}" font-size="11" text-anchor="middle" fill="${SC}">${l}</text>`;});
   return s+`<text x="2" y="9" font-size="9" fill="${SC}">(${D.u})</text></svg>`;}
 function g4_bar(lvl){
+  // 지워진 막대 하나를 합계로 구하기
+  if(Math.random()<.25){const D=barData(),i=R(0,D.labs.length-1),tot=D.v.reduce((a,b)=>a+b,0),fig=barSVG({...D,v:D.v.map((x,j)=>j===i?0:x),labs:D.labs.map((l,j)=>j===i?l+'?':l)});
+    return mk('g4_bar',{q:`${D.ti}을(를) 조사한 막대그래프에서 ${HB(D.labs[i])}의 막대가 지워졌어요. 합계가 ${tot}${D.u}이면 ${D.labs[i]}은(는) 몇 ${D.u}인가요?`,fig,correct:D.v[i]+D.u,wrongs:nw(D.v[i],[tot-D.v[i],D.v[i]+D.st,D.v[i]-D.st],D.u,D.st),exp:`(합계) - (나머지 막대의 합) = ${tot} - ${tot-D.v[i]} = ${D.v[i]}${D.u}`});}
   const D=barData(),t=R(0,lvl?4:2),fig=barSVG(D),mx=Math.max(...D.v),mn=Math.min(...D.v),i=R(0,D.labs.length-1),hd=`${D.ti}을(를) 조사한 막대그래프예요. `;
   if(t===0)return mk('g4_bar',{q:hd+`가장 많은 것은?`,fig,correct:D.labs[D.v.indexOf(mx)],wrongs:D.labs.filter((_,j)=>D.v[j]!==mx),exp:'막대가 가장 긴 것을 찾아요.'});
   if(t===1)return mk('g4_bar',{q:hd+`${HB(D.labs[i])}은(는) 몇 ${D.u}인가요?`,fig,correct:D.v[i]+D.u,wrongs:nw(D.v[i],[D.v[i]/D.st,D.v[i]+D.st],D.u,D.st),exp:`세로 눈금 한 칸은 ${D.st}${D.u}을(를) 나타내요. ${D.v[i]/D.st}칸 → ${D.v[i]}${D.u}`});
@@ -1940,14 +1947,14 @@ function g4_fa_word(lvl){
 // ── 8. 삼각형 ──
 function g4_tri_side(lvl){
   const k=R(0,2),a=R(4,12),b=a+R(1,4),[s,c]=[[[a,a,a],'정삼각형'],[shuffle([a,a,b]),'이등변삼각형(정삼각형 아님)'],[shuffle([a,b,b+R(1,2)]),'세 변의 길이가 모두 다른 삼각형']][k];
-  return mk('g4_tri_side',{q:`세 변의 길이가 ${s.join(' cm, ')} cm인 삼각형을 변의 길이로 분류하면?`,correct:c,wrongs:['정삼각형','이등변삼각형(정삼각형 아님)','세 변의 길이가 모두 다른 삼각형'].filter(x=>x!==c),n:3,wide:true,exp:'두 변의 길이가 같으면 이등변삼각형, 세 변의 길이가 모두 같으면 정삼각형이에요.'});
+  return mk('g4_tri_side',{q:`세 변의 길이가 ${s.join(' cm, ')} cm인 삼각형을 변의 길이로 분류하면?`,fig:triFitSVG(triPtsSides(...s),s.map(x=>x+' cm')),correct:c,wrongs:['정삼각형','이등변삼각형(정삼각형 아님)','세 변의 길이가 모두 다른 삼각형'].filter(x=>x!==c),n:3,wide:true,exp:'두 변의 길이가 같으면 이등변삼각형, 세 변의 길이가 모두 같으면 정삼각형이에요.'});
 }
 function g4_tri_angle(lvl){
   const k=R(0,2);let a,b,c;
   do{a=R(20,80);b=R(20,80);c=180-a-b;}while(k===0?(c>=90||c<20):false);
   if(k===1){a=90;b=R(20,70);c=90-b;}if(k===2){a=R(95,150);b=R(10,180-a-10);c=180-a-b;}
   const nm=['예각삼각형','직각삼각형','둔각삼각형'][k],sh=shuffle([a,b,c]);
-  return mk('g4_tri_angle',{q:`세 각이 ${sh.map(deg).join(', ')}인 삼각형을 각의 크기로 분류하면?`,correct:nm,wrongs:['예각삼각형','직각삼각형','둔각삼각형'].filter(x=>x!==nm),n:3,exp:'세 각이 모두 예각이면 예각삼각형, 한 각이 직각이면 직각삼각형, 한 각이 둔각이면 둔각삼각형이에요.'});
+  return mk('g4_tri_angle',{q:`세 각이 ${sh.map(deg).join(', ')}인 삼각형을 각의 크기로 분류하면?`,fig:triFitSVG(triPtsAngles(sh[0],sh[1]),null,sh.map(deg)),correct:nm,wrongs:['예각삼각형','직각삼각형','둔각삼각형'].filter(x=>x!==nm),n:3,exp:'세 각이 모두 예각이면 예각삼각형, 한 각이 직각이면 직각삼각형, 한 각이 둔각이면 둔각삼각형이에요.'});
 }
 function g4_tri_iso(lvl){
   if(Math.random()<.5){const top=R(10,80)*2;const base=(180-top)/2;return mk('g4_tri_iso',{q:`이등변삼각형에서 길이가 같은 두 변 사이의 각이 ${deg(top)}예요. 나머지 한 각은 몇 도인가요?`,correct:deg(base),wrongs:nw(base,[180-top,top],'°',5),exp:`두 밑각의 크기가 같아요: (180° - ${deg(top)}) ÷ 2 = ${deg(base)}`});}
@@ -1996,7 +2003,9 @@ function g4_dec_word(lvl){
 const QUAD_TF=[['정사각형은 마름모예요.',1,'네 변의 길이가 모두 같아요.'],['마름모는 모두 정사각형이에요.',0,'네 각이 직각이 아닌 마름모도 있어요.'],['직사각형은 평행사변형이에요.',1,'마주 보는 두 쌍의 변이 서로 평행해요.'],['사다리꼴은 모두 평행사변형이에요.',0,'평행한 변이 한 쌍뿐인 사다리꼴도 있어요.'],['평행사변형은 사다리꼴이에요.',1,'평행한 변이 있으니 사다리꼴이에요.'],['정사각형은 직사각형이에요.',1,'네 각이 모두 직각이에요.'],['직사각형은 모두 정사각형이에요.',0,'네 변의 길이가 다를 수 있어요.'],['마름모는 평행사변형이에요.',1,'마주 보는 두 쌍의 변이 평행해요.'],['평행사변형은 마주 보는 각의 크기가 같아요.',1,'마주 보는 각끼리 같아요.'],['마름모의 두 대각선은 서로 수직이에요.',1,'두 대각선이 수직으로 만나 서로 이등분해요.']];
 function g4_quad_tf(){const [s,t,e]=pick(QUAD_TF);return mk('g4_quad_tf',{q:`다음 설명은 맞을까요?<br><span class="sub">“${s}”</span>`,correct:t?'맞아요':'틀려요',wrongs:[t?'틀려요':'맞아요'],n:2,exp:e});}
 const QUAD_NAME=[['평행한 변이 한 쌍이라도 있는 사각형','사다리꼴'],['마주 보는 두 쌍의 변이 서로 평행한 사각형','평행사변형'],['네 변의 길이가 모두 같은 사각형','마름모'],['네 각이 모두 직각인 사각형','직사각형'],['네 변의 길이가 같고 네 각이 모두 직각인 사각형','정사각형']];
-function g4_quad_name(){const [s,c]=pick(QUAD_NAME);return mk('g4_quad_name',{q:`다음 설명에 알맞은 사각형의 이름은?<br><span class="sub">${s}</span>`,correct:c,wrongs:shuffle(QUAD_NAME.map(x=>x[1]).filter(x=>x!==c)),exp:`${s} → ${c}`});}
+function g4_quad_name(){
+  if(Math.random()<.5){const k=pick(QUAD_NAME.map(x=>x[1]));return mk('g4_quad_name',{q:'그림의 사각형에 가장 알맞은 이름은? (빨간 표시는 직각, 같은 길이의 변을 나타내요)',fig:quadSVG(k),correct:k,wrongs:shuffle(QUAD_NAME.map(x=>x[1]).filter(x=>x!==k)),exp:QUAD_NAME.find(x=>x[1]===k)[0]+' → '+k});}
+  const [s,c]=pick(QUAD_NAME);return mk('g4_quad_name',{q:`다음 설명에 알맞은 사각형의 이름은?<br><span class="sub">${s}</span>`,correct:c,wrongs:shuffle(QUAD_NAME.map(x=>x[1]).filter(x=>x!==c)),exp:`${s} → ${c}`});}
 function g4_quad_angle(lvl){
   const a=R(9,34)*5;if(a===90)return g4_quad_angle(lvl);const near=Math.random()<.6;
   return mk('g4_quad_angle',{q:`평행사변형의 한 각이 ${deg(a)}일 때 ${HB(near?'이웃한 각':'마주 보는 각')}은 몇 도인가요?`,correct:deg(near?180-a:a),wrongs:nw(near?180-a:a,[near?a:180-a,360-a],'°',5),exp:near?`이웃한 두 각의 합은 180°예요: 180° - ${deg(a)} = ${deg(180-a)}`:`마주 보는 각의 크기는 같아요 → ${deg(a)}`});
@@ -2007,12 +2016,17 @@ function g4_quad_peri(lvl){
   return mk('g4_quad_peri',{q:`한 변이 ${a} cm인 마름모의 네 변의 길이의 합은 몇 cm인가요?`,correct:4*a+' cm',wrongs:nw(4*a,[2*a,a*a],' cm',a),exp:`네 변의 길이가 같아요: ${a} × 4 = ${4*a} cm`});
 }
 const PERP_MC=[['두 직선이 만나서 이루는 각이 직각일 때, 두 직선은 서로 어떤 관계인가요?','수직',['평행','대각선','예각'],'직각으로 만나면 서로 수직이에요.'],['서로 만나지 않는 두 직선을 무엇이라고 하나요?','평행선',['수선','대각선','꼭짓점'],'아무리 늘여도 만나지 않는 두 직선은 평행선이에요.'],['한 직선에 수직인 두 직선은 서로 어떤 관계인가요?','평행',['수직','직각','만난다'],'같은 직선에 수직인 두 직선은 서로 평행해요.'],['평행선 사이의 거리는 어떤 선분의 길이인가요?','평행선 사이의 수직인 선분',['가장 긴 선분','비스듬한 선분','대각선'],'수직인 선분의 길이가 가장 짧고, 그것이 평행선 사이의 거리예요.'],['두 직선이 서로 수직일 때 한 직선을 다른 직선에 대한 무엇이라고 하나요?','수선',['평행선','대각선','밑변'],'수직인 직선을 수선이라고 해요.']];
-function g4_quad_perp(){return textMC('g4_quad_perp',PERP_MC);}
+function g4_quad_perp(){
+  if(Math.random()<.5)return textMC('g4_quad_perp',PERP_MC);
+  const [k,c]=pick([['perp','서로 수직이에요'],['para','서로 평행해요'],['none','수직도 평행도 아니에요']]);
+  return mk('g4_quad_perp',{q:'그림의 두 직선은 서로 어떤 관계인가요?',fig:twoLinesSVG(k),correct:c,wrongs:['서로 수직이에요','서로 평행해요','수직도 평행도 아니에요'].filter(x=>x!==c),n:3,exp:'만나서 직각을 이루면 수직, 아무리 늘여도 만나지 않으면 평행이에요.'});
+}
 // ── 12. 다각형 ──
 const PNAME=['','','','삼각형','사각형','오각형','육각형','칠각형','팔각형','구각형','십각형'];
 function g4_poly_name(lvl){
-  const n=R(3,10);
-  if(Math.random()<.5)return mk('g4_poly_name',{q:`변이 ${HB(n+'개')}인 다각형의 이름은?`,correct:PNAME[n],wrongs:[n-1,n+1,n+2,n-2].filter(x=>x>=3&&x<=10).map(x=>PNAME[x]),exp:`변이 ${n}개 → ${PNAME[n]}`});
+  const n=R(3,10),t=Math.random();
+  if(t<.35)return mk('g4_poly_name',{q:'그림의 다각형의 이름은?',fig:polySVG(n).replace('width="72" height="72"','width="120" height="120"'),correct:PNAME[n],wrongs:[n-1,n+1,n+2,n-2].filter(x=>x>=3&&x<=10).map(x=>PNAME[x]),exp:`변을 세어 보면 ${n}개 → ${PNAME[n]}`});
+  if(t<.7)return mk('g4_poly_name',{q:`변이 ${HB(n+'개')}인 다각형의 이름은?`,correct:PNAME[n],wrongs:[n-1,n+1,n+2,n-2].filter(x=>x>=3&&x<=10).map(x=>PNAME[x]),exp:`변이 ${n}개 → ${PNAME[n]}`});
   return mk('g4_poly_name',{q:`${HB(PNAME[n])}의 꼭짓점은 몇 개인가요?`,correct:n+'개',wrongs:nw(n,[n+1,n-1,2*n],'개'),exp:`다각형의 꼭짓점 수는 변의 수와 같아요 → ${n}개`});
 }
 function g4_poly_reg(lvl){
@@ -2089,7 +2103,7 @@ function g6_fd_word(lvl){
 const PN6=['','','','삼각','사각','오각','육각','칠각','팔각','구각','십각'];
 function g6_prism_parts(lvl){
   const n=R(3,lvl?10:6),pr=Math.random()<.5,w=pick(['면','모서리','꼭짓점']),v=pr?{면:n+2,모서리:3*n,꼭짓점:2*n}[w]:{면:n+1,모서리:2*n,꼭짓점:n+1}[w],nm=PN6[n]+(pr?'기둥':'뿔');
-  return mk('g6_prism_parts',{q:`${HB(nm)}의 ${w}은(는) 모두 몇 개인가요?`,correct:v+'개',wrongs:nw(v,pr?[n+2,3*n,2*n,n+1]:[n+1,2*n,n,3*n],'개'),exp:pr?`n각기둥: 면 n+2, 모서리 3×n, 꼭짓점 2×n → ${v}개`:`n각뿔: 면 n+1, 모서리 2×n, 꼭짓점 n+1 → ${v}개`});
+  return mk('g6_prism_parts',{q:`${HB(nm)}의 ${w}은(는) 모두 몇 개인가요?`,fig:n<=8?prismSVG(n,!pr):'',correct:v+'개',wrongs:nw(v,pr?[n+2,3*n,2*n,n+1]:[n+1,2*n,n,3*n],'개'),exp:pr?`n각기둥: 면 n+2, 모서리 3×n, 꼭짓점 2×n → ${v}개`:`n각뿔: 면 n+1, 모서리 2×n, 꼭짓점 n+1 → ${v}개`});
 }
 function g6_prism_rev(lvl){
   const n=R(3,9),pr=Math.random()<.5,[w,v]=pr?pick([['모서리',3*n],['꼭짓점',2*n],['면',n+2]]):pick([['모서리',2*n],['면',n+1]]),nm=PN6[n]+(pr?'기둥':'뿔');
@@ -2165,14 +2179,14 @@ const G6_CHOOSE=[['전체에 대한 각 부분의 비율을 한눈에 보기','�
 function g6_graph_choose(){const [s,c]=pick(G6_CHOOSE);return mk('g6_graph_choose',{q:`다음 자료를 나타내기에 가장 알맞은 그래프는?<br><span class="sub">${s}</span>`,correct:c,wrongs:G6_CHOOSE.map(x=>x[1]).filter(x=>x!==c),wide:true,exp:'비율은 띠·원그래프, 변화는 꺾은선그래프, 양의 크기 비교는 막대·그림그래프가 알맞아요.'});}
 // ── 6. 직육면체의 부피와 겉넓이 ──
 function g6_vol(lvl){
-  if(Math.random()<.35){const a=R(2,lvl?15:9),v=a**3;return mk('g6_vol',{q:`한 모서리가 ${a} cm인 정육면체의 부피는 몇 cm³인가요?`,correct:com(v)+' cm³',wrongs:nw(v,[a*a,a*6,6*a*a],' cm³'),exp:`${a} × ${a} × ${a} = ${com(v)} cm³`});}
+  if(Math.random()<.35){const a=R(2,lvl?15:9),v=a**3;return mk('g6_vol',{q:`한 모서리가 ${a} cm인 정육면체의 부피는 몇 cm³인가요?`,fig:cuboidSVG(a,a,a),correct:com(v)+' cm³',wrongs:nw(v,[a*a,a*6,6*a*a],' cm³'),exp:`${a} × ${a} × ${a} = ${com(v)} cm³`});}
   const a=R(2,lvl?20:10),b=R(2,12),c=R(2,10),v=a*b*c;
-  return mk('g6_vol',{q:`가로 ${a} cm, 세로 ${b} cm, 높이 ${c} cm인 직육면체의 부피는 몇 cm³인가요?`,correct:com(v)+' cm³',wrongs:nw(v,[2*(a*b+b*c+c*a),a+b+c,a*b],' cm³'),exp:`(가로) × (세로) × (높이) = ${a} × ${b} × ${c} = ${com(v)} cm³`});
+  return mk('g6_vol',{q:`가로 ${a} cm, 세로 ${b} cm, 높이 ${c} cm인 직육면체의 부피는 몇 cm³인가요?`,fig:cuboidSVG(a,c,b),correct:com(v)+' cm³',wrongs:nw(v,[2*(a*b+b*c+c*a),a+b+c,a*b],' cm³'),exp:`(가로) × (세로) × (높이) = ${a} × ${b} × ${c} = ${com(v)} cm³`});
 }
 function g6_surf(lvl){
-  if(Math.random()<.35){const a=R(2,12),s=6*a*a;return mk('g6_surf',{q:`한 모서리가 ${a} cm인 정육면체의 겉넓이는 몇 cm²인가요?`,correct:com(s)+' cm²',wrongs:nw(s,[a**3,4*a*a,a*a],' cm²'),exp:`(한 면의 넓이) × 6 = ${a*a} × 6 = ${com(s)} cm²`});}
+  if(Math.random()<.35){const a=R(2,12),s=6*a*a;return mk('g6_surf',{q:`한 모서리가 ${a} cm인 정육면체의 겉넓이는 몇 cm²인가요?`,fig:cuboidSVG(a,a,a),correct:com(s)+' cm²',wrongs:nw(s,[a**3,4*a*a,a*a],' cm²'),exp:`(한 면의 넓이) × 6 = ${a*a} × 6 = ${com(s)} cm²`});}
   const a=R(2,12),b=R(2,10),c=R(2,8),s=2*(a*b+b*c+c*a);
-  return mk('g6_surf',{q:`가로 ${a} cm, 세로 ${b} cm, 높이 ${c} cm인 직육면체의 겉넓이는 몇 cm²인가요?`,correct:com(s)+' cm²',wrongs:nw(s,[a*b*c,a*b+b*c+c*a,4*(a+b+c)],' cm²'),exp:`(세 면의 넓이의 합) × 2 = (${a*b} + ${b*c} + ${c*a}) × 2 = ${com(s)} cm²`});
+  return mk('g6_surf',{q:`가로 ${a} cm, 세로 ${b} cm, 높이 ${c} cm인 직육면체의 겉넓이는 몇 cm²인가요?`,fig:cuboidSVG(a,c,b),correct:com(s)+' cm²',wrongs:nw(s,[a*b*c,a*b+b*c+c*a,4*(a+b+c)],' cm²'),exp:`(세 면의 넓이의 합) × 2 = (${a*b} + ${b*c} + ${c*a}) × 2 = ${com(s)} cm²`});
 }
 function g6_vol_unit(lvl){
   const n=R(2,30),t=R(0,1);
@@ -2181,7 +2195,7 @@ function g6_vol_unit(lvl){
 }
 function g6_vol_rev(lvl){
   const a=R(2,12),b=R(2,10),c=R(2,10),v=a*b*c;
-  return mk('g6_vol_rev',{q:`부피가 ${com(v)} cm³이고 가로 ${a} cm, 세로 ${b} cm인 직육면체의 높이는 몇 cm인가요?`,correct:c+' cm',wrongs:nw(c,[v-a*b,a*b],' cm'),exp:`(높이) = (부피) ÷ (가로 × 세로) = ${com(v)} ÷ ${a*b} = ${c} cm`});
+  return mk('g6_vol_rev',{q:`부피가 ${com(v)} cm³이고 가로 ${a} cm, 세로 ${b} cm인 직육면체의 높이는 몇 cm인가요?`,fig:cuboidSVG(a,'□',b),correct:c+' cm',wrongs:nw(c,[v-a*b,a*b],' cm'),exp:`(높이) = (부피) ÷ (가로 × 세로) = ${com(v)} ÷ ${a*b} = ${c} cm`});
 }
 // ── 7. 분수의 나눗셈 (2): (분수)÷(분수) ──
 function g6_ff(lvl){
@@ -2265,7 +2279,7 @@ function g6_prop_word(lvl){
 const PI_=314; // 3.14 × 100
 function g6_circ_c(lvl){
   const r=R(2,lvl?20:10),useD=Math.random()<.5,d=2*r,v=d*PI_;
-  return mk('g6_circ_c',{q:`${useD?'지름':'반지름'}이 ${useD?d:r} cm인 원의 원주는 몇 cm인가요? (원주율: 3.14)`,correct:dstr(v,2)+' cm',wrongs:[dstr(r*PI_,2),dstr(r*r*PI_,2),dstr(v+PI_,2),dstr(d*3*100,2)].filter(x=>x!==dstr(v,2)).map(x=>x+' cm'),exp:`(원주) = (지름) × 3.14 = ${d} × 3.14 = ${dstr(v,2)} cm`});
+  return mk('g6_circ_c',{q:`${useD?'지름':'반지름'}이 ${useD?d:r} cm인 원의 원주는 몇 cm인가요? (원주율: 3.14)`,fig:useD?circDSVG(d):circSVG(r),correct:dstr(v,2)+' cm',wrongs:[dstr(r*PI_,2),dstr(r*r*PI_,2),dstr(v+PI_,2),dstr(d*3*100,2)].filter(x=>x!==dstr(v,2)).map(x=>x+' cm'),exp:`(원주) = (지름) × 3.14 = ${d} × 3.14 = ${dstr(v,2)} cm`});
 }
 function g6_circ_d(lvl){
   const d=R(3,30),c=d*PI_;
@@ -2273,20 +2287,115 @@ function g6_circ_d(lvl){
 }
 function g6_circ_area(lvl){
   const r=R(2,lvl?20:10),useD=Math.random()<.4,v=r*r*PI_;
-  return mk('g6_circ_area',{q:`${useD?'지름':'반지름'}이 ${useD?2*r:r} cm인 원의 넓이는 몇 cm²인가요? (원주율: 3.14)`,correct:dstr(v,2)+' cm²',wrongs:[dstr(2*r*PI_,2),dstr(4*r*r*PI_,2),dstr(r*PI_,2),dstr((r*r+r)*PI_,2)].filter(x=>x!==dstr(v,2)).map(x=>x+' cm²'),exp:`(원의 넓이) = (반지름) × (반지름) × 3.14 = ${r} × ${r} × 3.14 = ${dstr(v,2)} cm²`});
+  return mk('g6_circ_area',{q:`${useD?'지름':'반지름'}이 ${useD?2*r:r} cm인 원의 넓이는 몇 cm²인가요? (원주율: 3.14)`,fig:useD?circDSVG(2*r):circSVG(r),correct:dstr(v,2)+' cm²',wrongs:[dstr(2*r*PI_,2),dstr(4*r*r*PI_,2),dstr(r*PI_,2),dstr((r*r+r)*PI_,2)].filter(x=>x!==dstr(v,2)).map(x=>x+' cm²'),exp:`(원의 넓이) = (반지름) × (반지름) × 3.14 = ${r} × ${r} × 3.14 = ${dstr(v,2)} cm²`});
 }
 const CIRC_MC=[['원의 지름에 대한 원주의 비율을 무엇이라고 하나요?','원주율',['반지름','원의 넓이','비례식'],'원주 ÷ 지름 = 원주율(약 3.14)이에요.'],['원주율은 원의 크기에 따라 어떻게 되나요?','항상 일정하다',['원이 클수록 커진다','원이 작을수록 커진다','반지름과 같다'],'원의 크기와 상관없이 원주율은 일정해요.'],['원주는 지름의 약 몇 배인가요?','약 3.14배',['약 2배','약 4배','약 1.5배'],'원주 = 지름 × 3.14'],['원을 잘게 잘라 붙이면 어떤 도형에 가까워지나요?','직사각형',['삼각형','마름모','정오각형'],'가로는 원주의 반, 세로는 반지름인 직사각형에 가까워져요.']];
 function g6_circ_mc(){return textMC('g6_circ_mc',CIRC_MC);}
 // ── 12. 원기둥, 원뿔, 구 ──
 const SOLID_MC=[['밑면이 2개이고 서로 평행하며 합동인 원으로 된 입체도형은?','원기둥',['원뿔','구','각기둥'],'두 원이 밑면인 기둥이 원기둥이에요.'],['밑면이 원 1개이고 뾰족한 꼭짓점이 있는 입체도형은?','원뿔',['원기둥','구','각뿔'],'원뿔은 밑면 1개, 꼭짓점 1개예요.'],['어느 방향에서 보아도 원으로 보이는 입체도형은?','구',['원기둥','원뿔','정육면체'],'구는 어느 방향에서 보아도 원이에요.'],['원기둥의 전개도에서 옆면은 어떤 모양인가요?','직사각형',['원','삼각형','부채꼴'],'원기둥의 옆면을 펼치면 직사각형이에요.'],['원뿔의 꼭짓점에서 밑면에 수직인 선분의 길이를 무엇이라고 하나요?','높이',['모선의 길이','반지름','지름'],'꼭짓점과 밑면에 수직인 선분의 길이가 높이예요.'],['구에서 가장 안쪽에 있는 점을 무엇이라고 하나요?','구의 중심',['꼭짓점','밑면','모선'],'구의 중심에서 겉면까지가 반지름이에요.']];
-function g6_solid_mc(){return textMC('g6_solid_mc',SOLID_MC);}
+// 절반은 그림을 보고 이름 맞히기
+const SOLID_PIC=[['cyl','원기둥'],['cone','원뿔'],['sphere','구'],['prism','각기둥'],['pyr','각뿔']];
+function g6_solid_mc(){
+  if(Math.random()<.5)return textMC('g6_solid_mc',SOLID_MC);
+  const [k,nm]=pick(SOLID_PIC),n=R(3,6);
+  return mk('g6_solid_mc',{q:'그림과 같은 입체도형의 이름은?',fig:k==='prism'||k==='pyr'?prismSVG(n,k==='pyr'):solidSVG(k),correct:nm,wrongs:SOLID_PIC.map(x=>x[1]).filter(x=>x!==nm),exp:{원기둥:'밑면이 서로 평행하고 합동인 원 2개예요.',원뿔:'밑면이 원 1개이고 뾰족한 꼭짓점이 있어요.',구:'어느 방향에서 보아도 원 모양이에요.',각기둥:'밑면이 다각형 2개이고 옆면이 직사각형이에요.',각뿔:'밑면이 다각형 1개이고 옆면이 삼각형이에요.'}[nm]});
+}
 function g6_cyl_net(lvl){
   const r=R(2,10),h=R(3,15),t=R(0,1);
-  if(t===0)return mk('g6_cyl_net',{q:`밑면의 반지름이 ${r} cm인 원기둥의 전개도에서 옆면의 가로는 몇 cm인가요? (원주율: 3.14)`,correct:dstr(2*r*PI_,2)+' cm',wrongs:[dstr(r*PI_,2),dstr(r*r*PI_,2),String(2*r)].map(x=>x+' cm'),exp:`옆면의 가로는 밑면의 둘레와 같아요: ${2*r} × 3.14 = ${dstr(2*r*PI_,2)} cm`});
-  return mk('g6_cyl_net',{q:`높이가 ${h} cm인 원기둥의 전개도에서 옆면의 세로는 몇 cm인가요?`,correct:h+' cm',wrongs:nw(h,[2*h,h+r],' cm'),exp:`옆면의 세로는 원기둥의 높이와 같아요 → ${h} cm`});
+  if(t===0)return mk('g6_cyl_net',{q:`밑면의 반지름이 ${r} cm인 원기둥의 전개도에서 옆면의 가로는 몇 cm인가요? (원주율: 3.14)`,fig:solidSVG('cyl',r,null),correct:dstr(2*r*PI_,2)+' cm',wrongs:[dstr(r*PI_,2),dstr(r*r*PI_,2),String(2*r)].map(x=>x+' cm'),exp:`옆면의 가로는 밑면의 둘레와 같아요: ${2*r} × 3.14 = ${dstr(2*r*PI_,2)} cm`});
+  return mk('g6_cyl_net',{q:`높이가 ${h} cm인 원기둥의 전개도에서 옆면의 세로는 몇 cm인가요?`,fig:solidSVG('cyl',null,h),correct:h+' cm',wrongs:nw(h,[2*h,h+r],' cm'),exp:`옆면의 세로는 원기둥의 높이와 같아요 → ${h} cm`});
 }
 const SOLID_TF=[['원기둥에는 꼭짓점이 없어요.',1,'원기둥은 꼭짓점이 없어요.'],['원뿔에는 꼭짓점이 2개 있어요.',0,'원뿔의 꼭짓점은 1개예요.'],['구는 밑면이 없어요.',1,'구에는 밑면도 꼭짓점도 없어요.'],['원뿔의 모선은 셀 수 없이 많아요.',1,'꼭짓점과 밑면 둘레의 한 점을 잇는 선분은 끝없이 그을 수 있어요.'],['원기둥과 각기둥은 모두 밑면이 2개예요.',1,'둘 다 밑면이 2개예요.'],['원뿔을 위에서 보면 삼각형이에요.',0,'위에서 보면 원이에요.']];
 function g6_solid_tf(){const [s,t,e]=pick(SOLID_TF);return mk('g6_solid_tf',{q:`다음 설명은 맞을까요?<br><span class="sub">“${s}”</span>`,correct:t?'맞아요':'틀려요',wrongs:[t?'틀려요':'맞아요'],n:2,exp:e});}
+// ── 그림 문제용 그림: 입체도형, 원, 선, 수직·평행, 사각형, 삼각형, 들이·무게 눈금, 분류 카드, ○ 그래프 ──
+const svgOpen=(w,h,mw=200)=>`<svg viewBox="0 0 ${w} ${h}" class="fig-svg" style="max-width:${mw}px;max-height:${h+20}px">`;
+const ln2=(x1,y1,x2,y2,o={})=>`<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${o.c||SC}" stroke-width="${o.w||2}" ${o.d?'stroke-dasharray="4 3" opacity=".7"':''} stroke-linecap="round"/>`;
+const dot2=(x,y,c=SC)=>`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="${c}"/>`;
+/** n각기둥(pyr=false)이나 n각뿔의 겨냥도. 보이지 않는 모서리는 점선 */
+function prismSVG(n,pyr){
+  const cx=80,by=108,R0=50,ry=.34,H=64,P=Array.from({length:n},(_,i)=>{const t=Math.PI/2+Math.PI/n+i*2*Math.PI/n;return[cx+R0*Math.cos(t),by+R0*ry*Math.sin(t),Math.sin(t)];});
+  const xs=P.map(p=>p[0]),edge=p=>p[0]===Math.max(...xs)||p[0]===Math.min(...xs),back=p=>p[2]<-.05&&!edge(p),pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+  let s=svgOpen(160,140,170)+`<polygon points="${pts(P)}" fill="#fff4c8" opacity=".8"/>`;
+  P.forEach((p,i)=>{const q=P[(i+1)%n],mid=Math.sin(Math.PI/2+Math.PI/n+(i+.5)*2*Math.PI/n);s+=ln2(p[0],p[1],q[0],q[1],{d:mid<-.05});});
+  if(pyr){const ax=cx,ay=by-H-14;P.forEach(p=>s+=ln2(ax,ay,p[0],p[1],{d:back(p)}));}
+  else{const T=P.map(p=>[p[0],p[1]-H,p[2]]);s+=`<polygon points="${pts(T)}" fill="#f8e8a8" stroke="${SC}" stroke-width="2"/>`;P.forEach((p,i)=>s+=ln2(p[0],p[1],T[i][0],T[i][1],{d:back(p)}));}
+  return s+'</svg>';
+}
+/** 원기둥·원뿔·구. r, h를 주면 길이를 적는다 */
+function solidSVG(kind,r,h){
+  const cx=80,rx=46,ry=13,half=(cy,front)=>`<path d="M ${cx-rx} ${cy} A ${rx} ${ry} 0 0 ${front?0:1} ${cx+rx} ${cy}" fill="none" stroke="${SC}" stroke-width="2" ${front?'':'stroke-dasharray="4 3" opacity=".7"'}/>`,t=(x,y,v)=>`<text x="${x}" y="${y}" font-size="12" font-weight="700" fill="#2050b0" text-anchor="middle">${v} cm</text>`;
+  let s=svgOpen(170,140,180);
+  if(kind==='cyl'){s+=`<rect x="${cx-rx}" y="28" width="${rx*2}" height="84" fill="#f8e8a8"/><ellipse cx="${cx}" cy="112" rx="${rx}" ry="${ry}" fill="#f8e8a8"/>`+half(112,true)+half(112,false)+ln2(cx-rx,28,cx-rx,112)+ln2(cx+rx,28,cx+rx,112)+`<ellipse cx="${cx}" cy="28" rx="${rx}" ry="${ry}" fill="#fff4c8" stroke="${SC}" stroke-width="2"/>`;
+    if(r!=null)s+=ln2(cx,28,cx+rx,28,{c:'#d82000'})+dot2(cx,28)+t(cx+24,12,r);if(h!=null)s+=t(cx+rx+18,74,h);}
+  else if(kind==='cone'){s+=`<polygon points="${cx},16 ${cx-rx},112 ${cx+rx},112" fill="#f8e8a8"/><ellipse cx="${cx}" cy="112" rx="${rx}" ry="${ry}" fill="#f8e8a8"/>`+half(112,true)+half(112,false)+ln2(cx,16,cx-rx,112)+ln2(cx,16,cx+rx,112)+dot2(cx,16);
+    if(h!=null)s+=ln2(cx,16,cx,112,{d:1})+t(cx+26,80,h);if(r!=null)s+=ln2(cx,112,cx+rx,112,{c:'#d82000'})+t(cx+24,130,r);}
+  else{s+=`<circle cx="${cx}" cy="70" r="52" fill="#f8e8a8" stroke="${SC}" stroke-width="2"/>`+`<path d="M ${cx-52} 70 A 52 14 0 0 0 ${cx+52} 70" fill="none" stroke="${SC}" stroke-width="1.5"/><path d="M ${cx-52} 70 A 52 14 0 0 1 ${cx+52} 70" fill="none" stroke="${SC}" stroke-width="1.5" stroke-dasharray="4 3" opacity=".7"/>`+dot2(cx,70);
+    if(r!=null)s+=ln2(cx,70,cx+52,70,{c:'#d82000'})+t(cx+26,58,r);}
+  return s+'</svg>';
+}
+/** 지름이 그려진 원 */
+function circDSVG(d){return `<svg viewBox="-50 -42 100 84" class="fig-svg" style="max-width:150px"><circle r="38" fill="#e8f4ff" stroke="${SC}" stroke-width="2.5"/><line x1="-38" y1="0" x2="38" y2="0" stroke="#d82000" stroke-width="2"/><circle r="2.5" fill="${SC}"/><text x="0" y="-6" font-size="10" text-anchor="middle" fill="#d82000" font-weight="700">${d} cm</text></svg>`;}
+/** 선분·반직선·직선: 두 점 ㄱ, ㄴ을 지나는 곧은 선 */
+function lineKindSVG(k){
+  const a=60,b=160,y=34,x1=k==='seg'?a:k==='ray'?a:10,x2=k==='seg'?b:230;
+  return svgOpen(240,60,240)+ln2(x1,y,x2,y,{w:2.5})+dot2(a,y)+dot2(b,y)+lab(a,y+16,'ㄱ',{fs:12})+lab(b,y+16,'ㄴ',{fs:12})+'</svg>';
+}
+/** 두 직선: 'perp' 수직(직각 표시), 'para' 평행, 'none' 비스듬히 만남 */
+function twoLinesSVG(k){
+  let s=svgOpen(200,120,200);
+  if(k==='para'){const t=-.18;s+=ln2(20,40,180,40+160*t)+ln2(20,90,180,90+160*t);}
+  else if(k==='perp')s+=ln2(20,60,180,60)+ln2(100,10,100,110)+`<polyline points="100,48 112,48 112,60" fill="none" stroke="#d82000" stroke-width="1.6"/>`;
+  else s+=ln2(20,80,180,40)+ln2(60,10,130,110);
+  return s+'</svg>';
+}
+/** 사각형 그림: 직각 표시와 같은 길이 표시를 함께 그린다 */
+function quadSVG(k){
+  const P={'사다리꼴':[[50,20],[130,20],[170,100],[20,100]],'평행사변형':[[60,20],[180,20],[140,100],[20,100]],'마름모':[[100,10],[160,60],[100,110],[40,60]],'직사각형':[[30,25],[170,25],[170,95],[30,95]],'정사각형':[[60,20],[140,20],[140,100],[60,100]]}[k];
+  let s=svgOpen(200,120,200)+`<polygon points="${P.map(p=>p.join(',')).join(' ')}" fill="#f8e8a8" stroke="${SC}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  const tick=(p,q,n=1)=>{const mx=(p[0]+q[0])/2,my=(p[1]+q[1])/2,dx=q[0]-p[0],dy=q[1]-p[1],L=Math.hypot(dx,dy),nx=-dy/L*6,ny=dx/L*6;let r='';for(let i=0;i<n;i++){const o=(i-(n-1)/2)*4,ox=dx/L*o,oy=dy/L*o;r+=ln2(mx+ox-nx,my+oy-ny,mx+ox+nx,my+oy+ny,{c:'#d82000',w:1.6});}return r;};
+  if(k==='직사각형'||k==='정사각형')P.forEach((p,i)=>{const q=P[(i+1)%4],r=P[(i+3)%4],f=10,ux=Math.sign(q[0]-p[0])*f,uy=Math.sign(q[1]-p[1])*f,vx=Math.sign(r[0]-p[0])*f,vy=Math.sign(r[1]-p[1])*f;s+=`<polyline points="${p[0]+ux},${p[1]+uy} ${p[0]+ux+vx},${p[1]+uy+vy} ${p[0]+vx},${p[1]+vy}" fill="none" stroke="#d82000" stroke-width="1.4"/>`;});
+  if(k==='마름모'||k==='정사각형')P.forEach((p,i)=>s+=tick(p,P[(i+1)%4]));
+  if(k==='평행사변형')s+=tick(P[0],P[1])+tick(P[2],P[3])+tick(P[1],P[2],2)+tick(P[3],P[0],2);
+  return s+'</svg>';
+}
+/** 세 변(a,b,c)이나 세 각으로 그린 삼각형. labels: 변 옆 또는 꼭짓점 안쪽에 적을 글자 */
+function triPtsSides(a,b,c){const x=(b*b+c*c-a*a)/(2*c),y=Math.sqrt(Math.max(0,b*b-x*x));return[[0,0],[c,0],[x,-y]];}
+function triPtsAngles(A,B){const C=180-A-B,rad=d=>d*Math.PI/180,c=1,b=Math.sin(rad(B))/Math.sin(rad(C));return[[0,0],[c,0],[b*Math.cos(rad(A)),-b*Math.sin(rad(A))]];}
+function triFitSVG(P,sideLabs,angLabs){
+  const xs=P.map(p=>p[0]),ys=P.map(p=>p[1]),w=Math.max(...xs)-Math.min(...xs),h=Math.max(...ys)-Math.min(...ys),k=Math.min(180/w,100/Math.max(h,.01)),Q=P.map(p=>[20+(p[0]-Math.min(...xs))*k,120-(Math.max(...ys)-p[1])*k-10]);
+  const c=[(Q[0][0]+Q[1][0]+Q[2][0])/3,(Q[0][1]+Q[1][1]+Q[2][1])/3];
+  let s=svgOpen(220,130,220)+`<polygon points="${Q.map(p=>p.map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="#f8e8a8" stroke="${SC}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  if(sideLabs)[[1,2],[2,0],[0,1]].forEach(([i,j],n)=>{const m=[(Q[i][0]+Q[j][0])/2,(Q[i][1]+Q[j][1])/2],d=Math.hypot(m[0]-c[0],m[1]-c[1])||1;s+=lab(m[0]+(m[0]-c[0])/d*14,m[1]+(m[1]-c[1])/d*14,sideLabs[n],{fs:12,c:'#2050b0'});});
+  // 뾰족한 각일수록 글자를 안쪽으로 더 들여 변과 겹치지 않게 한다
+  if(angLabs)Q.forEach((p,n)=>{const d=Math.hypot(c[0]-p[0],c[1]-p[1])||1,k=parseFloat(angLabs[n])<45?Math.min(d*.7,40):24;s+=lab(p[0]+(c[0]-p[0])/d*k,p[1]+(c[1]-p[1])/d*k,angLabs[n],{fs:11,c:'#d82000'});});
+  return s+'</svg>';
+}
+/** 눈금 실린더: 전체 cap mL, 큰 눈금 step mL, 물 v mL */
+function cupSVG(v,cap=1000,step=100){
+  const top=16,bot=176,H=bot-top,x=70,w=60,y=bot-H*v/cap;let s=svgOpen(200,186,180)+`<rect x="${x}" y="${y.toFixed(1)}" width="${w}" height="${(bot-y).toFixed(1)}" fill="#8cc8f0"/><path d="M ${x} ${top} L ${x} ${bot} L ${x+w} ${bot} L ${x+w} ${top}" fill="none" stroke="${SC}" stroke-width="2.5"/>`;
+  for(let m=step/2;m<=cap;m+=step/2){const yy=bot-H*m/cap,big=m%step===0;s+=ln2(x+w,yy,x+w-(big?14:7),yy,{w:1.5});if(big)s+=`<text x="${x+w+6}" y="${(yy+4).toFixed(1)}" font-size="10" fill="${SC}">${m}</text>`;}
+  return s+`<text x="${x+w+6}" y="10" font-size="10" fill="${SC}">(mL)</text></svg>`;
+}
+/** 바늘 저울: 0~max g, 큰 눈금 100 g, 작은 눈금 50 g */
+function scaleSVG(g,max=1000){
+  const cx=100,cy=78,r=58,ang=v=>(-90+v/max*360)*Math.PI/180;let s=svgOpen(200,150,180)+`<circle cx="${cx}" cy="${cy}" r="${r+8}" fill="#fff8e4" stroke="${SC}" stroke-width="2.5"/>`;
+  for(let v=0;v<max;v+=50){const a=ang(v),big=v%100===0,r1=big?r-10:r-5;s+=ln2(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1,cx+Math.cos(a)*r,cy+Math.sin(a)*r,{w:big?2:1.2});if(big)s+=lab(cx+Math.cos(a)*(r-20),cy+Math.sin(a)*(r-20),v,{fs:9,fw:700});}
+  const a=ang(g);return s+ln2(cx,cy,cx+Math.cos(a)*(r-6),cy+Math.sin(a)*(r-6),{c:'#d82000',w:2.5})+dot2(cx,cy)+`<text x="${cx}" y="${cy+26}" font-size="10" text-anchor="middle" fill="${SC}">(g)</text></svg>`;
+}
+/** 분류 카드: [색, 이름] 목록 */
+function sortSVG(items){
+  const C={'빨간색':'#f08070','노란색':'#f8d850','초록색':'#88c868'},per=4,w=64;let s=svgOpen(per*w+8,Math.ceil(items.length/per)*44+8,300);
+  items.forEach(([c,n],i)=>{const x=6+(i%per)*w,y=6+Math.floor(i/per)*44;s+=`<rect x="${x}" y="${y}" width="${w-8}" height="36" rx="8" fill="${C[c]}" stroke="${SC}" stroke-width="1.5"/><text x="${x+(w-8)/2}" y="${y+23}" font-size="12" font-weight="700" text-anchor="middle" fill="${SC}">${n}</text>`;});
+  return s+'</svg>';
+}
+/** ○ 그래프: 항목마다 아래에서 위로 ○를 쌓는다 */
+function oGraphSVG(labs,v){
+  const rows=Math.max(...v),cw=50,rh=18,H=rows*rh;let s=svgOpen(labs.length*cw+50,H+34,300);
+  for(let r=0;r<=rows;r++)s+=ln2(44,8+H-r*rh,44+labs.length*cw,8+H-r*rh,{c:'#c8b890',w:1});
+  for(let r=1;r<=rows;r++)s+=`<text x="38" y="${(8+H-r*rh+rh/2+4).toFixed(1)}" font-size="10" text-anchor="end" fill="${SC}">${r}</text>`;
+  labs.forEach((l,i)=>{const x=44+i*cw+cw/2;for(let k=0;k<v[i];k++)s+=`<circle cx="${x}" cy="${(8+H-k*rh-rh/2).toFixed(1)}" r="7" fill="none" stroke="#d82000" stroke-width="2"/>`;s+=`<text x="${x}" y="${H+26}" font-size="11" text-anchor="middle" fill="${SC}">${l}</text>`;});
+  return s+`<text x="4" y="10" font-size="9" fill="${SC}">(명)</text></svg>`;
+}
 // ── 6학년 단원 표 ──
 const G6_UNITS={
  1:['분수의 나눗셈(1)',['g6_fd_nn','g6_fd_fn','g6_fd_mn','g6_fd_word']],
@@ -2415,7 +2524,7 @@ function g2_cm(lvl){const t=R(0,2),n=R(3,lvl?12:9);
   return textMC('g2_cm',[['길이를 잴 때 자의 눈금 0을 어디에 맞추나요?','물건의 한쪽 끝',['물건의 가운데','아무 곳이나','물건의 다른 쪽 끝 너머'],'한쪽 끝을 0에 맞추고 다른 쪽 끝의 눈금을 읽어요.'],['뼘으로 길이를 재면 사람마다 결과가 다른 까닭은?','뼘의 길이가 사람마다 달라서',['자를 쓰지 않아서','물건이 움직여서','숫자를 몰라서'],'그래서 누구나 같은 cm 단위를 써요.']]);}
 const SORT_ITEMS=[['빨간색','사과'],['노란색','바나나'],['빨간색','딸기'],['초록색','오이'],['노란색','레몬'],['초록색','멜론'],['빨간색','토마토'],['노란색','참외']];
 function g2_sort(lvl){const items=shuffle(SORT_ITEMS).slice(0,R(5,8)),col=pick(['빨간색','노란색','초록색']),n=items.filter(x=>x[0]===col).length;
-  return mk('g2_sort',{q:`색깔에 따라 분류해요. ${HB(col)}은(는) 몇 개인가요?<br><span class="sub">${items.map(x=>`${x[1]}(${x[0].replace('색','')})`).join(', ')}</span>`,wide:true,correct:n+'개',wrongs:nw(n,[items.length-n,items.length],'개').concat(['0개']).filter(x=>x!==n+'개'),exp:`${col}: ${items.filter(x=>x[0]===col).map(x=>x[1]).join(', ')||'없음'} → ${n}개`});}
+  return mk('g2_sort',{q:`그림의 과일을 색깔에 따라 분류해요. ${HB(col)}은(는) 몇 개인가요?`,fig:sortSVG(items),wide:true,correct:n+'개',wrongs:nw(n,[items.length-n,items.length],'개').concat(['0개']).filter(x=>x!==n+'개'),exp:`${col}: ${items.filter(x=>x[0]===col).map(x=>x[1]).join(', ')||'없음'} → ${n}개`});}
 function g2_mul_groups(lvl){const a=R(2,lvl?9:5),b=R(2,lvl?9:5),t=R(0,2);
   if(t===0)return mk('g2_mul',{q:`${HB(a)}씩 ${HB(b)}묶음은 모두 몇 개인가요?`,fig:a*b<=30?dotsSVG(a*b):'',correct:(a*b)+'개',wrongs:nw(a*b,[a+b,a*(b+1)],'개'),exp:`${a}씩 ${b}묶음 → ${a} × ${b} = ${a*b}`});
   if(t===1)return mk('g2_mul',{q:`${HB(a)}의 ${HB(b)}배는 얼마인가요?`,big:true,correct:String(a*b),wrongs:nw(a*b,[a+b,a*b+a]),exp:`${a}의 ${b}배 = ${a} × ${b} = ${a*b}`});
@@ -2434,7 +2543,10 @@ function g2_time(lvl){const t=R(0,2);
   if(t===0){const h=R(1,12),m=R(1,11)*5,c=timeTxt(h,m);return mk('g2_time',{q:'시계가 나타내는 시각은?',fig:clockSVG(h,m),correct:c,wrongs:[timeTxt(h,(m+30)%60||5),timeTxt(h%12+1,m),timeTxt(h,m/5)].filter(x=>x!==c),exp:`짧은바늘은 ${h}와(과) ${h%12+1} 사이, 긴바늘이 ${m/5}을(를) 가리키면 ${m}분 → ${c}`});}
   if(t===1){const [q,a,w]=pick([['1시간은 몇 분인가요?','60분',['100분','30분','24분']],['하루는 몇 시간인가요?','24시간',['12시간','60시간','7시간']],['1주일은 며칠인가요?','7일',['5일','10일','12일']],['1년은 몇 개월인가요?','12개월',['10개월','24개월','7개월']],['1시간 20분은 몇 분인가요?','80분',['120분','70분','100분']],['오전 9시부터 오전 11시까지는 몇 시간인가요?','2시간',['3시간','20시간','1시간']]]);return mk('g2_time',{q,correct:a,wrongs:w,exp:'1시간 = 60분, 하루 = 24시간, 1주일 = 7일, 1년 = 12개월'});}
   const h=R(1,9),m=R(0,5)*10,d=R(1,5)*10+(Math.random()<.5?60:0),e=h*60+m+d,c=timeTxt(Math.floor(e/60),e%60);return mk('g2_time',{q:`${timeTxt(h,m)}에서 ${d}분이 지나면 몇 시 몇 분인가요?`,correct:c,wrongs:[timeTxt(h,(m+d)%60),timeTxt(Math.floor(e/60)+1,e%60),timeTxt(Math.floor(e/60),(e+10)%60)].filter(x=>x!==c),exp:`60분이 지나면 1시간이 늘어요 → ${c}`});}
-function g2_table(lvl){const labs=shuffle(['사과','바나나','포도','딸기']),v=labs.map(()=>R(1,8)),i=R(0,3),tot=v.reduce((a,b)=>a+b,0),t=R(0,2);
+function g2_table(lvl){const labs=shuffle(['사과','바나나','포도','딸기']),v=labs.map(()=>R(1,8)),i=R(0,3),tot=v.reduce((a,b)=>a+b,0),t=R(0,4);
+  // ○ 그래프: 몇 명인지 읽기, 가장 적은 것 찾기
+  if(t===3)return mk('g2_table',{q:`좋아하는 과일을 ○ 그래프로 나타냈어요. ${HB(labs[i])}을(를) 좋아하는 학생은 몇 명인가요?`,fig:oGraphSVG(labs,v),correct:v[i]+'명',wrongs:nw(v[i],[v[(i+1)%4],v[i]+1],'명'),exp:`${labs[i]} 위의 ○를 세면 ${v[i]}개 → ${v[i]}명`});
+  if(t===4){const mn=Math.min(...v);if(v.filter(x=>x===mn).length>1)return g2_table(lvl);return mk('g2_table',{q:'○ 그래프에서 좋아하는 학생이 가장 적은 과일은?',fig:oGraphSVG(labs,v),correct:labs[v.indexOf(mn)],wrongs:labs.filter((_,j)=>v[j]!==mn),exp:`○가 가장 적은 것: ${mn}개 → ${labs[v.indexOf(mn)]}`});}
   const tb=`<svg viewBox="0 0 300 60" class="fig-svg" style="max-width:320px">${['과일',...labs,'합계'].map((l,j)=>`<rect x="${j*50}" y="0" width="50" height="30" fill="#f8e8a8" stroke="${SC}"/><text x="${j*50+25}" y="20" font-size="11" text-anchor="middle" fill="${SC}">${l}</text>`).join('')}${['학생 수(명)',...v,t===1?'□':tot].map((l,j)=>`<rect x="${j*50}" y="30" width="50" height="30" fill="#fff" stroke="${SC}"/><text x="${j*50+25}" y="50" font-size="${j?13:8}" text-anchor="middle" fill="${l==='□'?'#d82000':SC}" font-weight="700">${l}</text>`).join('')}</svg>`;
   if(t===0){const mx=Math.max(...v);if(v.filter(x=>x===mx).length>1)return g2_table(lvl);return mk('g2_table',{q:'좋아하는 과일을 조사한 표예요. 가장 많은 학생이 좋아하는 과일은?',fig:tb,correct:labs[v.indexOf(mx)],wrongs:labs.filter((_,j)=>v[j]!==mx),exp:`가장 큰 수: ${mx}명 → ${labs[v.indexOf(mx)]}`});}
   if(t===1)return mk('g2_table',{q:'표의 □에 알맞은 수는? (조사한 학생은 모두 몇 명인가요?)',fig:tb,correct:tot+'명',wrongs:nw(tot,[tot-v[0],tot+1],'명'),exp:`${v.join(' + ')} = ${tot}명`});
@@ -2459,7 +2571,12 @@ function g3_addsub_word(lvl){const a=R(120,580),b=R(110,390),t=R(0,1);
   if(t===0)return mk('g3_addsub_word',{q:`도서관에 동화책이 ${a}권, 위인전이 ${b}권 있어요. 모두 몇 권인가요?`,correct:(a+b)+'권',wrongs:nw(a+b,[Math.abs(a-b),a+b+100],'권',10),exp:`${a} + ${b} = ${a+b}권`});
   return mk('g3_addsub_word',{q:`줄넘기를 형은 ${a+b}번, 나는 ${a}번 했어요. 형은 나보다 몇 번 더 했나요?`,correct:b+'번',wrongs:nw(b,[2*a+b,b+100],'번',10),exp:`${a+b} - ${a} = ${b}번`});}
 const LINE_MC=[['두 점을 곧게 이은 선을 무엇이라고 하나요?','선분',['반직선','직선','곡선'],'양쪽 끝이 있는 곧은 선은 선분이에요.'],['한 점에서 시작하여 한쪽으로 끝없이 늘인 곧은 선은?','반직선',['선분','직선','꼭짓점'],'한쪽으로만 끝없이 늘이면 반직선이에요.'],['양쪽으로 끝없이 늘인 곧은 선은?','직선',['선분','반직선','각'],'양쪽으로 끝없이 늘이면 직선이에요.'],['한 점에서 그은 두 반직선으로 이루어진 도형은?','각',['선분','원','직선'],'두 반직선이 만나 각을 이루어요.'],['종이를 반듯하게 두 번 접었을 때 생기는 각은?','직각',['예각','둔각','평각'],'두 번 반듯하게 접으면 직각이 생겨요.'],['네 각이 모두 직각인 사각형은?','직사각형',['삼각형','원','오각형'],'네 각이 직각인 사각형이 직사각형이에요.'],['네 각이 모두 직각이고 네 변의 길이가 모두 같은 사각형은?','정사각형',['직사각형','직각삼각형','원'],'정사각형은 네 변과 네 각이 모두 같아요.'],['한 각이 직각인 삼각형은?','직각삼각형',['정삼각형','정사각형','둔각'],'한 각이 직각이면 직각삼각형이에요.']];
-function g3_plane(lvl){if(Math.random()<.6)return textMC('g3_plane',LINE_MC);const [nm,n]=pick([['직사각형',4],['정사각형',4],['직각삼각형',1]]);return mk('g3_plane',{q:`${HB(nm)}에는 직각이 몇 개 있나요?`,correct:n+'개',wrongs:nw(n,[n+1,n-1,3].filter(x=>x>=0),'개'),exp:`${nm}의 직각은 ${n}개예요.`});}
+// 선 그림 보고 이름 맞히기, 도형 그림의 직각 세기, 글로 묻는 문제를 섞는다
+function g3_plane(lvl){const t=Math.random();
+  if(t<.35){const [k,nm]=pick([['seg','선분'],['ray','반직선'],['line','직선']]);return mk('g3_plane',{q:'그림과 같이 두 점 ㄱ, ㄴ을 지나는 곧은 선의 이름은?',fig:lineKindSVG(k),correct:nm==='선분'?'선분 ㄱㄴ':nm==='반직선'?'반직선 ㄱㄴ':'직선 ㄱㄴ',wrongs:['선분 ㄱㄴ','반직선 ㄱㄴ','직선 ㄱㄴ','반직선 ㄴㄱ'],exp:'양 끝이 점에서 끝나면 선분, 한 점에서 한쪽으로만 끝없이 늘이면 반직선, 양쪽으로 끝없이 늘이면 직선이에요.'});}
+  if(t<.75)return textMC('g3_plane',LINE_MC);
+  const [nm,n,P]=pick([['직사각형',4,[[30,25],[170,25],[170,95],[30,95]]],['정사각형',4,[[60,20],[140,20],[140,100],[60,100]]],['직각삼각형',1,[[40,20],[40,100],[170,100]]],['사다리꼴',0,[[60,20],[140,20],[175,100],[25,100]]]]);
+  return mk('g3_plane',{q:`그림의 ${HB(nm)}에는 직각이 몇 개 있나요?`,fig:svgOpen(200,120,190)+`<polygon points="${P.map(p=>p.join(',')).join(' ')}" fill="#f8e8a8" stroke="${SC}" stroke-width="2.5" stroke-linejoin="round"/></svg>`,correct:n+'개',wrongs:['0개','1개','2개','3개','4개'].filter(x=>x!==n+'개'),exp:n?`${nm}의 직각은 ${n}개예요. 삼각자의 직각 부분을 대어 확인해요.`:`${nm}에는 직각이 없어요. 삼각자를 대어 보면 꼭 맞는 곳이 없어요.`});}
 function g3_div(lvl){const b=R(2,9),q=R(1,9),a=b*q,t=R(0,2);
   if(t===0)return mk('g3_div',{q:`${a} ÷ ${b} = ?`,big:true,correct:String(q),wrongs:nw(q,[a-b,q+b]),exp:`${b} × ${q} = ${a} 이므로 ${a} ÷ ${b} = ${q}`});
   if(t===1)return mk('g3_div',{q:`곱셈식 ${HB(`${b} × ${q} = ${a}`)}을(를) 나눗셈식으로 바르게 나타낸 것은?`,correct:`${a} ÷ ${b} = ${q}`,wrongs:[`${a} ÷ ${a} = ${b}`,`${b} ÷ ${q} = ${a}`,`${q} ÷ ${a} = ${b}`],exp:`${b} × ${q} = ${a} → ${a} ÷ ${b} = ${q}, ${a} ÷ ${q} = ${b}`});
@@ -2496,7 +2613,9 @@ function g3_frac2(lvl){const t=R(0,3);
   if(t===2){const d=R(2,9),w=R(1,4),n=R(1,d-1),v=w*d+n;if(Math.random()<.5)return mk('g3_frac2',{q:`${mraw(w,n,d)}${pj(n,'을를')} 가분수로 나타내면?`,big:true,correct:fraw(v,d),wrongs:[fraw(w*n+d,d),fraw(w+n,d),fraw(v,w)].filter(x=>x!==fraw(v,d)),exp:`${w} = ${fraw(w*d,d)} → ${fraw(w*d,d)}와(과) ${fraw(n,d)} → ${fraw(v,d)}`});
     return mk('g3_frac2',{q:`${fraw(v,d)}${pj(v,'을를')} 대분수로 나타내면?`,big:true,correct:mraw(w,n,d),wrongs:[mraw(w+1,n,d),mraw(w,n+1>=d?n-1||1:n+1,d),mraw(n,w,d)].filter(x=>x!==mraw(w,n,d)),exp:`${v} ÷ ${d} = ${w} … ${n} → ${mraw(w,n,d)}`});}
   const d=R(3,9);let a=R(1,2*d),b=R(1,2*d);if(a===b)return g3_frac2(lvl);const big=Math.random()<.5,c=(a>b)===big?a:b;return mk('g3_frac2',{q:`더 ${HB(big?'큰':'작은')} 분수는?`,big:true,correct:fraw(c,d),wrongs:[fraw(c===a?b:a,d)],n:2,exp:'분모가 같으면 분자가 클수록 커요.'});}
-function g3_cap(lvl){const t=R(0,3);
+function g3_cap(lvl){const t=R(0,5);
+  if(t===4){const v=lvl?R(1,19)*50:R(1,9)*100;return mk('g3_cap',{q:'눈금 실린더에 담긴 물의 양은 몇 mL인가요?',fig:cupSVG(v),correct:com(v)+' mL',wrongs:nw(v,[v+100,v-50,v+50],' mL',50),exp:`물의 높이가 가리키는 눈금을 읽어요. 큰 눈금 한 칸은 100 mL, 작은 눈금 한 칸은 50 mL → ${com(v)} mL`});}
+  if(t===5){const g=lvl?R(1,19)*50:R(1,9)*100;return mk('g3_cap',{q:'저울의 바늘이 가리키는 무게는 몇 g인가요?',fig:scaleSVG(g),correct:com(g)+' g',wrongs:nw(g,[g+100,g-50,g+50],' g',50),exp:`큰 눈금 한 칸은 100 g, 작은 눈금 한 칸은 50 g이에요. 바늘이 가리키는 곳을 읽으면 ${com(g)} g`});}
   if(t===0){const l=R(1,9),m=R(1,999);return mk('g3_cap',{q:`${HB(`${l} L ${m} mL`)}는 몇 mL인가요?`,correct:com(l*1000+m)+' mL',wrongs:nw(l*1000+m,[l*100+m,l*10000+m],' mL',100),exp:`1 L = 1,000 mL → ${com(l*1000+m)} mL`});}
   if(t===1){const k=R(1,9),g=R(1,999);return mk('g3_cap',{q:`${HB(`${k} kg ${g} g`)}은 몇 g인가요?`,correct:com(k*1000+g)+' g',wrongs:nw(k*1000+g,[k*100+g,k*10000+g],' g',100),exp:`1 kg = 1,000 g → ${com(k*1000+g)} g`});}
   if(t===2){const l=R(1,4),m=R(100,700),l2=R(1,3),m2=R(100,1000-m-1),c=`${l+l2} L ${m+m2} mL`;return mk('g3_cap',{q:`${l} L ${m} mL + ${l2} L ${m2} mL = ?`,wide:true,correct:c,wrongs:[`${l+l2+1} L ${m+m2} mL`,`${l+l2} L ${Math.abs(m-m2)} mL`,`${Math.abs(l-l2)} L ${m+m2} mL`].filter(x=>x!==c),exp:`L끼리, mL끼리 더해요 → ${c}`});}
@@ -2706,12 +2825,16 @@ function applyGradeLink(){
   const lg=+p.get('g');let g=GRADES[lg]?lg:5;
   try{if(GRADES[lg])localStorage.setItem(SKEY+'.grade',lg);else g=+localStorage.getItem(SKEY+'.grade')||5;}catch(e){}
   setGrade(g);
+  // 반 코드(?c=)가 있으면 이 기기를 그 반에 넣는다. 백업할 때 요약이 선생님 화면으로 간다
+  try{const c=(p.get('c')||'').toUpperCase();if(/^[A-Z0-9]{6}$/.test(c))localStorage.setItem(SKEY+'.class',c);CLASS=localStorage.getItem(SKEY+'.class')||'';}catch(e){}
   if(GRADES[lg]&&p.get('u')){const on=unitsParse(p.get('u'));if(on.size){UNITS_OFF=new Set(ALL_UNITS.filter(u=>!on.has(u)));try{localStorage.setItem(SKEY+'.unitsOff',JSON.stringify([...UNITS_OFF]));}catch(e){}}}
   // 교사 버튼은 주소 끝에 ?teacher를 붙여 연 기기에서만 보인다. 학생용 링크(?g=)로 열면 숨기고 교사 모드도 끈다
   try{teacherUI=p.has('teacher')||(!GRADES[lg]&&(teacher||localStorage.getItem(SKEY+'.tui')==='1'));localStorage.setItem(SKEY+'.tui',teacherUI?'1':'0');}catch(e){teacherUI=p.has('teacher');}
   if(!teacherUI)teacher=false;document.body.classList.toggle('tui',teacherUI);try{document.body.classList.toggle('tever',localStorage.getItem(SKEY+'.teachEver')==='1');}catch(e){}
 }
-const gradeLink=()=>`${location.href.split(/[?#]/)[0]}?g=${GRADE}&u=${unitsStr(new Set(ALL_UNITS.filter(u=>!UNITS_OFF.has(u))))}`;
+let CLASS='';
+const myClass=()=>{try{return localStorage.getItem(SKEY+'.myClass')||'';}catch(e){return '';}};
+const gradeLink=()=>`${location.href.split(/[?#]/)[0]}?g=${GRADE}&u=${unitsStr(new Set(ALL_UNITS.filter(u=>!UNITS_OFF.has(u))))}${myClass()?'&c='+myClass():''}`;
 // ── 학년별 스토리: 지역 이름·관장 소개·지역 대사를 그 학년 단원에 맞춘다. 지우개단과 제로의 큰 줄거리는 학년과 상관없이 같다 ──
 // r: [지역 이름, 관장 소개, 관장 한마디], s: 지역 대사(없는 칸은 5학년 것을 쓴다), post: 엔딩 뒤 관장 인사, rival: 한별 재대결 대사, hb4: 4지역 한별 첫마디
 const STORY_G={4:{
@@ -3061,7 +3184,9 @@ async function doTrade(m){
 // ════════════════════════════════════════════════
 const CFG2={nightRestMs:10*60e3,hallLvShift:-4,bossLvAdd:{1:7,2:4},allyLvDrop:6,nightRate:.3,nightStarter:.12,rematchMs:20*3600e3,rematchLv:5,bushBadges:3,rockBadges:6,outbreakRate:.6,outbreakShiny:3,regionDexCoin:300,regionDexItem:['orb2',3],heldBand:1.15,heldCharm:.85,heldCap:1.5,luckyCoinPerLv:2,frGood:40,frBest:80,frEndure:.25,frMax:100,frWin:3,frFaint:2,weatherBoost:1.2,weatherChance:.5,awakenNeed:8,awakenPow:150,runSpeed:1.8,repelSteps:100,lureSteps:60,lureMul:3,questCount:3,towerUnlock:1,towerHeal:.2,trainQ:5,
  // 최종전과 엔딩 조건
- finLv:56,endWrong:300,endTrained:20,endStreak:30,endTower:30,endDexAll:.9,endDexHalf:.67,endEggs:4,endTrainers:60,endWear:3,endDays:30};
+ finLv:56,endWrong:300,endTrained:20,endStreak:30,endTower:30,endDexAll:.9,endDexHalf:.67,endEggs:4,endTrainers:60,endWear:3,endDays:30,
+ // 엔딩 뒤 제로의 「오늘의 오답」: 하루 한 번, 문제 수와 다 풀었을 때의 코인
+ dailyQ:3,dailyCoin:150};
 Object.assign(ITEMS,{
   band:{n:'힘의 머리띠',ic:'🎀',d:'지니면 주는 피해가 15% 늘어요.',p:400,held:1},charm:{n:'방패 부적',ic:'🧿',d:'지니면 받는 피해가 15% 줄어요.',p:400,held:1},
   berry:{n:'회복 열매',ic:'🍎',d:'지니면 전투마다 한 번, HP가 절반 이하일 때 1/4 회복해요.',p:300,held:1},clear:{n:'맑은 구슬',ic:'🫧',d:'지니면 전투마다 한 번, 상태 이상을 막아요.',p:300,held:1},
@@ -3420,11 +3545,11 @@ function cine(panels,{skip=true}={}){return new Promise(done=>{
   const box=$('#cine'),cv2=$('#cineC'),g=cv2.getContext('2d');g.imageSmoothingEnabled=false;box.classList.add('on','swap');box.classList.remove('dim');
   $('#cineS').style.display=skip?'block':'none';const tb=$('#cineT');let pi=-1,li=0,sw=false,t0=0,ty=null,tm=null,over=false,bgImg=null,chap=null;
   const paint=()=>{const p=panels[pi];if(!p)return;const t=(performance.now()-t0)/1000;if(p.art)CINE_ART[p.art](g,t);else if(bgImg&&bgImg.complete)g.drawImage(bgImg,0,0,240,160);};
-  const line=()=>{const[w,x]=panels[pi].lines[li];$('#cineW').textContent=w||'';$('#cineW').style.display=w?'block':'none';$('#cineL').innerHTML=josaFix(esc(sv&&sv.name?nameIn(x):x));ty=typeInto($('#cineL'));tb.classList.toggle('typing',ty.active());ty.done.then(()=>tb.classList.remove('typing'));};
+  const line=()=>{const[w,x]=panels[pi].lines[li];$('#cineW').textContent=w||'';$('#cineW').style.display=w?'block':'none';$('#cineL').innerHTML=josaFix(esc(sv&&sv.name?nameIn(x):x));speak($('#cineL').textContent);ty=typeInto($('#cineL'));tb.classList.toggle('typing',ty.active());ty.done.then(()=>tb.classList.remove('typing'));};
   const panel=async()=>{const np=pi+1;chap&&chap.remove();chap=null;if(np>=panels.length)return finish();sw=true;box.classList.add('swap');await sleep(np?260:60);pi=np;li=0;sw=false;t0=performance.now();const p=panels[pi];if(p.arena!=null){bgImg=new Image();bgImg.src=pxArena(p.arena);}paint();void box.offsetWidth;box.classList.remove('swap');
     if(p.title){tb.style.visibility='hidden';chap=document.createElement('div');chap.className='chap';chap.innerHTML=`<small>${esc(p.sub||'')}</small><b>${esc(p.title)}</b>`;box.appendChild(chap);tm=setTimeout(next,1700);return;}tb.style.visibility='';line();};
   const next=()=>{if(over||sw)return;clearTimeout(tm);if(ty&&ty.active()){ty.finish();return;}const p=panels[pi];if(p&&p.lines&&li+1<p.lines.length){li++;line();return;}panel();};
-  const finish=()=>{if(over)return;over=true;clearInterval(loop);clearTimeout(tm);if(ty)ty.finish();removeEventListener('keydown',key);chap&&chap.remove();box.classList.add('swap'); // 그림이 검게 사라진 뒤 다음 화면을 깔고, 검은 막을 걷는다
+  const finish=()=>{if(over)return;over=true;ttsStop();clearInterval(loop);clearTimeout(tm);if(ty)ty.finish();removeEventListener('keydown',key);chap&&chap.remove();box.classList.add('swap'); // 그림이 검게 사라진 뒤 다음 화면을 깔고, 검은 막을 걷는다
     setTimeout(()=>{done();setTimeout(()=>{box.classList.add('dim');setTimeout(()=>{box.classList.remove('on','dim','swap');tb.style.visibility='';},260);},60);},260);};
   const key=e=>{if(e.code==='Space'||e.key==='Enter'||e.code==='KeyZ'){e.preventDefault();e.stopPropagation();next();}else if((e.key==='Escape'||e.code==='KeyX')&&skip){e.preventDefault();finish();}};
   const loop=setInterval(paint,90);box._next=next;tb.onclick=next;cv2.onclick=next;$('#cineS').onclick=e=>{e.stopPropagation();finish();};addEventListener('keydown',key,true);panel();
@@ -3671,8 +3796,9 @@ async function finale(fromHall){
   if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요. 먼저 회복해요!');
   const W=i=>REGIONS[i].wild,lv=CFG2.finLv;
   if(!sv.fin){
-    await playLines(fromHall?FINALE_PRE:FINALE_PRE.slice(1));
-    healAll();persist();await say('','열두 결정의 남은 빛이 동료들을 감싼다. 동료들이 모두 회복했다!');
+    // 다시 도전할 때는 긴 등장 장면 대신 두 줄만 보여 준다
+    await playLines(!sv.finIntro?(fromHall?FINALE_PRE:FINALE_PRE.slice(1)):[...(fromHall?FINALE_PRE.slice(0,1):[]),['','간부 소거와 말소가 다시 앞을 막아선다.'],['한별','이번엔 꼭 이기자!']]);
+    sv.finIntro=1;persist();healAll();persist();await say('','열두 결정의 남은 빛이 동료들을 감싼다. 동료들이 모두 회복했다!');
     const foes=[[4,0,-2],[8,0,-2],[4,1,-1],[8,1,-1]].map(([i,k,d])=>({sp:rollSp(W(i)[k],lv+d),lv:lv+d})),aLv=lv-CFG2.allyLvDrop;
     const res=await battleScene({kind:'elite',foes,units:ALL_UNITS,lvl:2,region:LAST_REGION,name:'간부 소거·말소',line:'지우개단 간부',ally:{sp:rollSp(RIVAL_STARTER[sv.starter]||4,aLv),lv:aLv}});
     if(res!=='win')return;
@@ -3694,11 +3820,41 @@ async function playEnding(id){
 async function zeroHall(){
   if((sv.fin||0)<2){await say('단장 제로','…왔나. 열두 결정의 빛은 아직 내 손에 있다.');return finale(false);}
   const r=endingsReady();
-  if(!r.length)return say('제로',pagesN()<ZERO_PAGES.length?'가끔 이곳에 들른다. …공책? 그건 버리고 왔다. 어디에 떨어졌는지는 나도 모른다.':'가끔 이곳에 들른다. 네가 걸어온 길을 더 보여 다오. 다른 끝도 있을지 모르니까.');
+  if(!r.length){await say('제로',pagesN()<ZERO_PAGES.length?'가끔 이곳에 들른다. …공책? 그건 버리고 왔다. 어디에 떨어졌는지는 나도 모른다.':'가끔 이곳에 들른다. 네가 걸어온 길을 더 보여 다오. 다른 끝도 있을지 모르니까.');return zeroDaily();}
   const id=r.length>1?await ask(`<h3>제로와 이야기하기</h3><p>새로 볼 수 있는 엔딩이 ${r.length}개 있어요.</p>`,r.map(k=>({t:`엔딩 ${k} 「${ENDINGS[k-1].n}」`,v:k})).concat([{t:'다음에',v:0,cls:'gray'}]))
     :await ask(`<h3>제로와 이야기하기</h3><p>새로 볼 수 있는 엔딩: 「${ENDINGS[r[0]-1].n}」</p>`,[{t:'이야기한다',v:r[0]},{t:'다음에',v:0,cls:'gray'}]);
   if(!id)return;
   await say('제로','…그날의 이야기를 다시 해 볼까. 이번엔 다른 끝으로.');await playEnding(id);
+}
+// 오늘의 오답: 제로를 이긴 뒤 전당 앞이나 연구소의 제로가 하루 한 번 다시 도전 수첩에서 문제를 낸다
+const todayKey=()=>new Date().toDateString();
+/** 수첩이 비었으면 정답률이 낮은 유형, 기록도 없으면 배운 단원의 유형에서 고른다 */
+function dailyTopics(){
+  const ts=trainTopics();if(ts.length)return ts;
+  const all=ALL_UNITS.filter(u=>!UNITS_OFF.has(u)).flatMap(u=>UNIT_TOPIC[u]||[]).filter(t=>GEN[t]);
+  const tried=all.filter(t=>sv.stats[t]&&sv.stats[t].t).sort((a,b)=>sv.stats[a].c/sv.stats[a].t-sv.stats[b].c/sv.stats[b].t);
+  return tried.length?tried.slice(0,CFG2.dailyQ):all.sort(()=>Math.random()-.5).slice(0,CFG2.dailyQ);
+}
+async function zeroDaily(){
+  if(sv.zeroDay===todayKey())return say('제로','오늘 몫은 끝났다. 내일 다시 오너라.');
+  const go=await ask(`<h3>📓 오늘의 오답</h3><p>제로가 다시 도전 수첩에서 문제 ${CFG2.dailyQ}개를 골라 줘요.<br>다 풀면 💰 ${CFG2.dailyCoin}코인! 맞힌 문제는 수첩에서 지워져요.</p>`,[{t:'풀어 본다',v:1},{t:'다음에',v:0,cls:'gray'}]);if(!go)return;
+  await say('제로','오늘의 오답이다. 지우지 말고, 다시 풀어 봐라.');
+  await openFromWorld(()=>dailyRun(endMenu));
+  if(sv.zeroDay===todayKey())await say('제로','…좋다. 틀렸던 길로 다시 걸어왔군. 내일도 와라.');
+}
+async function dailyRun(back){
+  const ts=dailyTopics();let ok=0,fixed=0,i=0;
+  for(;i<CFG2.dailyQ;i++){
+    const t=ts[i%ts.length],q=GEN[t](1);q.input=false;
+    page(`<div class="topbar"><h3>📓 오늘의 오답</h3><span class="hchip">${i+1} / ${CFG2.dailyQ} · 성공 ${ok}</span></div><p class="note" style="margin-bottom:6px">제로가 고른 문제예요. 틀려도 괜찮아요. 끝까지 풀면 보상을 받아요.</p><div id="prq" style="display:flex;flex-direction:column;gap:6px"></div><button class="btn gray wide" id="prX" style="margin-top:8px">그만하기</button>`);
+    let quit=false;const res=await Promise.race([askQuestion($('#prq'),q,{}),new Promise(r=>$('#prX').onclick=()=>{quit=true;q.cancel();r({});})]);
+    if(quit)break;record(q,res.ok);
+    if(res.ok){ok++;const at=sv.wrong.findIndex(w=>w.tp===t);if(at>=0){sv.wrong.splice(at,1);fixed++;}}persist();
+  }
+  sv.trained=(sv.trained||0)+fixed;
+  if(i>=CFG2.dailyQ){sv.zeroDay=todayKey();sv.coins+=CFG2.dailyCoin;}
+  checkAch();persist();
+  await ask(i>=CFG2.dailyQ?`<h3>📓 오늘의 오답 끝!</h3><p>성공 ${ok}번 · 수첩에서 지운 문제 ${fixed}개<br>💰 ${CFG2.dailyCoin}코인 획득</p>`:'<h3>📓 오늘의 오답</h3><p>그만두었어요. 오늘 안에 다시 와서 처음부터 풀 수 있어요.</p>',[{t:'확인',v:1}]);back();
 }
 // 이야기 수첩
 /** 이야기 수첩의 엔딩 목록: 본 엔딩은 눌러서 다시 본다. 교사 모드에서는 안 본 엔딩도 미리 볼 수 있다 */
@@ -3829,7 +3985,7 @@ async function interiorEvent(n){
   if(n.k==='prof')return labEvent();
   if(n.k==='leader')return gymEvent();
   if(n.k==='mom')return momEvent();
-  if(n.k==='zero')return say('제로','박사님 공책 옆자리를 빌렸다. 오늘은 분수의 나눗셈을 다시 풀고 있지.');
+  if(n.k==='zero'){await say('제로','박사님 공책 옆자리를 빌렸다. 오늘도 틀렸던 문제를 다시 풀고 있지.');return zeroDaily();}
 }
 const objectTalk={B:()=>say('','내 침대다. 아직 조금 따뜻하다.'),T:()=>say('','엄마가 차려 둔 아침밥이 있다. 맛있어 보인다!'),K:()=>say('',pick(['『수호수 도감 첫걸음』이 꽂혀 있다.','『틀려도 괜찮아, 다시 풀면 돼』라는 책이다.','오래된 수학 공책들이 빼곡하다.'])),L:()=>say('','화분의 잎이 싱그럽다.'),O:()=>say('수리 박사',sv.party.length?'결정의 힘을 담아 둔 유리병이란다. 수호수가 그 빛을 따라왔지.':'안쪽의 세 수호수 중에서 함께 떠날 친구를 고르렴.'),P:()=>openFromWorld(()=>partyPage()),Q:()=>openFromWorld(()=>questPage(endMenu)),V:()=>say('',`받침대에 새겨져 있다.\n「${REGIONS[sv.region].name} 수련관 — 관장 ${(REGIONS[sv.region].leader||['?'])[0]}」`),S:()=>say('',pick(['수호수 간식이 가득하다.','책이 빼곡히 꽂혀 있다.','맛있어 보이는 열매가 있다.'])),M:()=>say('','알 수 없는 기계가 윙윙거린다.'),I:()=>say('','부엌에서 고소한 냄새가 난다. 엄마가 요리를 하셨나 보다.'),F:()=>say('','푹신한 의자다. 잠깐 앉아 쉬고 싶다.')};
 /** 확인 버튼: 앞 칸의 사람·물체에게 말을 건다. 계산대 너머도 닿는다 */
@@ -4268,7 +4424,8 @@ const BSPEED=[1,.6,.35];let battleSpeed=0;const bsp=()=>mode==='battle'?BSPEED[b
 const sleep=ms=>new Promise(r=>setTimeout(r,ms*TS*bsp()));
 const SKEY='suhosu.slots.v1';
 let slots=[null,null,null],cur=-1,sv=null,muted=false;
-function loadSlots(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(Array.isArray(v))slots=[0,1,2].map(i=>{try{return sanitizeSave(v[i]);}catch(e){return null;}});muted=localStorage.getItem(SKEY+'.mute')==='1';textMode=+localStorage.getItem(SKEY+'.txt')||0;teacher=localStorage.getItem(SKEY+'.teacher')==='1';battleSpeed=Math.min(2,+localStorage.getItem(SKEY+'.bspd')||0);UNITS_OFF=new Set(JSON.parse(localStorage.getItem(SKEY+'.unitsOff')||'[]').filter(u=>ALL_UNITS.includes(u)));}catch(e){}applyGradeLink();setTeacher(teacher);}
+function loadSlots(){try{const v=JSON.parse(localStorage.getItem(SKEY)||'null');if(Array.isArray(v))slots=[0,1,2].map(i=>{try{return sanitizeSave(v[i]);}catch(e){return null;}});muted=localStorage.getItem(SKEY+'.mute')==='1';textMode=+localStorage.getItem(SKEY+'.txt')||0;teacher=localStorage.getItem(SKEY+'.teacher')==='1';battleSpeed=Math.min(2,+localStorage.getItem(SKEY+'.bspd')||0);UNITS_OFF=new Set(JSON.parse(localStorage.getItem(SKEY+'.unitsOff')||'[]').filter(u=>ALL_UNITS.includes(u)));}catch(e){}applyGradeLink();setTeacher(teacher);
+  try{const t=localStorage.getItem(SKEY+'.tts');ttsOn=t===null?GRADE<=2:t==='1';}catch(e){ttsOn=GRADE<=2;}}
 function persist(){try{if(cur>=0)slots[cur]=sv;localStorage.setItem(SKEY,JSON.stringify(slots));}catch(e){}}
 function newSave(name){return{v:1,name,look:{c:40,skin:'light'},wear:{},wardrobe:{},region:0,pos:null,rest:0,party:[],box:[],inv:{...CFG.startInv},coins:CFG.startCoins,badges:{},visited:{0:1},seen:{},caught:{},stats:{},wrong:[],trainers:{},elite:0,champ:false,legend:false,dexGot:{},ok:0,total:0,story:{g:{},seen:{},errand:0},created:Date.now()};}
 // ── 저장 점검: 저장 코드나 저장소에서 온 값은 믿지 않고, 화면에 쓰기 전에 형태를 바로잡는다 ──
@@ -4304,7 +4461,7 @@ function sanitizeSave(o){
   ['badges','visited','seen','caught','stats','trainers','dexGot'].forEach(k=>s[k]=plainObj(s[k]));
   ['found','ach','rivals','endings'].forEach(k=>{if(k in s)s[k]=plainObj(s[k]);});
   ['coins','ok','total','elite'].forEach(k=>s[k]=toNum(s[k]));
-  ['qn','wins','questDone','stepsTotal','maxCombo','towerBest','trained','evolved','glowed','streak','bestStreak','aw','tutN','eggGiven','townI','trRe','fin','endLast'].forEach(k=>{if(k in s)s[k]=toNum(s[k]);});
+  ['qn','wins','questDone','stepsTotal','maxCombo','towerBest','trained','evolved','glowed','streak','bestStreak','aw','tutN','eggGiven','townI','trRe','fin','finIntro','endLast'].forEach(k=>{if(k in s)s[k]=toNum(s[k]);});
   const inv={};Object.keys(plainObj(s.inv)).forEach(k=>{if(ITEMS[k])inv[k]=Math.max(0,Math.floor(toNum(s.inv[k])));});s.inv=inv;
   s.pos=s.pos&&Number.isInteger(s.pos.x)&&Number.isInteger(s.pos.y)?{x:s.pos.x,y:s.pos.y,dir:DIRS[s.pos.dir]?s.pos.dir:'down'}:null;
   s.wrong=(Array.isArray(s.wrong)?s.wrong:[]).filter(w=>w&&GEN[w.tp]).slice(0,CFG.wrongMax).map(w=>({tp:w.tp,q:cleanHtml(w.q),fig:cleanHtml(w.fig),a:cleanHtml(w.a),e:cleanHtml(w.e),at:toNum(w.at)}));
@@ -4362,7 +4519,8 @@ function record(q,ok){noteAnswer(q,ok);sv.total++;if(ok)sv.ok++;const s=sv.stats
 function askQuestion(host,q,opts={}){
   return new Promise(res=>{
     const t0=performance.now();let done=false,timer=null;q.cancel=()=>{done=true;clearInterval(timer);document.removeEventListener('keydown',kd);};
-    const top=opts.quiet?`<div class="qtop spell"><span>✨ ${opts.label||''} 주문을 풀어요!${q.input?' (강력 주문)':''}</span></div>`:`<div class="qtop"><span>${q.input?'✍️ 직접 쓰기':'🔘 고르기'}${opts.label?' · '+opts.label:''}</span><span>${UNIT_NAME[TOPIC_UNIT[q.topic]]||''} · ${TOPIC_NAME[q.topic]||''}</span></div>`;
+    const sp=ttsOk()?` <button type="button" class="qsp" data-say="${esc(sayText(q.q))}" aria-label="문제 읽어 주기">🔊</button>`:'';
+    const top=opts.quiet?`<div class="qtop spell"><span>✨ ${opts.label||''} 주문을 풀어요!${q.input?' (강력 주문)':''}${sp}</span></div>`:`<div class="qtop"><span>${q.input?'✍️ 직접 쓰기':'🔘 고르기'}${opts.label?' · '+opts.label:''}${sp}</span><span>${UNIT_NAME[TOPIC_UNIT[q.topic]]||''} · ${TOPIC_NAME[q.topic]||''}</span></div>`;
     const finish=(ok)=>{if(done)return;done=true;clearInterval(timer);document.removeEventListener('keydown',kd);sfx(ok?'ok':'no');const ms=Math.round(performance.now()-t0);
       if(ok&&!opts.showGood){setTimeout(()=>res({ok,ms}),200*TS);return;}
       const box=document.createElement('div');box.className='expl'+(ok?' good':'');box.innerHTML=`<b class="t">${ok?'⭕ 성공!':'💨 아깝다!'}</b> 답은 <b>${q.answerHtml}</b><details style="margin-top:2px"><summary style="cursor:pointer">💡 비법 보기</summary>${q.exp}</details>`;
@@ -4413,6 +4571,25 @@ let B=null;
 const pn=()=>$('#bpanel');
 function setPanel(h){setQ(false);pn().innerHTML=josaFix(h);}
 let textMode=0;
+// ── 읽어 주기: 대사를 기기의 한국어 음성으로 읽는다. 문제 칸의 🔊는 켜고 끔과 상관없이 문제를 읽는다. 1·2학년 링크는 처음부터 켜진다 ──
+let ttsOn=false;
+const ttsVoice=()=>{try{return speechSynthesis.getVoices().find(v=>/^ko/i.test(v.lang))||null;}catch(e){return null;}};
+const ttsOk=()=>typeof speechSynthesis!=='undefined'&&!!ttsVoice();
+function ttsStop(){try{if(typeof speechSynthesis!=='undefined')speechSynthesis.cancel();}catch(e){}}
+/** 문제 HTML을 읽을 말로 바꾼다: 분수는 'ㅁ분의 ㅁ', 기호는 우리말로 */
+function sayText(h){
+  const d=document.createElement('div');
+  d.innerHTML=String(h).replace(/<span class="fr"><i>(\d+)<\/i><i>(\d+)<\/i><\/span>/g,' $2분의 $1 ');
+  return d.textContent.replace(/×/g,' 곱하기 ').replace(/÷/g,' 나누기 ').replace(/\+/g,' 더하기 ').replace(/[−–]|(?<=\d\s*)-(?=\s*\d)/g,' 빼기 ').replace(/=/g,' 은 ').replace(/□/g,' 네모 ').replace(/△/g,' 세모 ')
+    .replace(/\?/g,' 얼마 ').replace(/%/g,' 퍼센트').replace(/\s+/g,' ').trim();
+}
+/** force: 문제 🔊 버튼처럼 설정과 상관없이 읽을 때 */
+function speak(text,force){
+  if(!(ttsOn||force)||!ttsOk()||!text)return;ttsStop();
+  try{const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.voice=ttsVoice();u.rate=.95;speechSynthesis.speak(u);}catch(e){}
+}
+const speakHtml=(h,force)=>speak(sayText(h),force);
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('.qsp');if(!b)return;e.preventDefault();e.stopPropagation();speak(b.dataset.say,true);},true);
 // 교사 모드: 전투·진화의 주문을 문제 없이 성공으로 처리한다. 이 기기에 계속 켜져 있고, 풀이 기록에는 남지 않는다. 온라인 대전은 그대로 문제를 낸다
 // 비밀번호는 해시로만 둔다 (코드를 열어 봐도 바로 보이지 않게)
 const TEACHER_H='1oir8gh',pwHash=t=>{let h=2166136261;for(const c of 'suhosu:'+t){h^=c.codePointAt(0);h=Math.imul(h,16777619)>>>0;}return h.toString(36);};let teacher=false,teacherUI=false;
@@ -5003,8 +5180,8 @@ async function showEnding(id){
 const D={active:false,res:null};
 const FACE_OF={'점원':'clerk','수리 박사':'prof','쉼터지기':'nurse','엄마':'mom','한별':'rival','제로':'grunt','단장 제로':'grunt','간부 소거':'grunt','간부 말소':'grunt','지우개단 단원':'grunt','주민':'tip','마을 사람':'guide','지우개단':'grunt','문지기':'guide','챔피언 아라':'elite4'};
 function faceKey(w){if(!w)return null;if(w==='주민'&&TALK_LOOK)return TALK_LOOK;if(/간부/.test(w))return 'gruntB';if(/제로/.test(w))return 'zero';if(FACE_OF[w])return FACE_OF[w];if(ELITES.some(e=>e.name===w))return eliteLook(w);const li=REGIONS.findIndex(r=>r.leader&&r.leader[0]===w);if(li>0)return 'leader'+li;return /수련생/.test(w)?trLook(w):null;}
-function say(who,text){return new Promise(res=>{D.active=true;D.res=res;$('#dWho').textContent=who||'';$('#dWho').style.display=who?'block':'none';$('#dText').innerHTML=josaFix(esc(text)).replace(/\n/g,'<br>');{const fk=faceKey(who),fe=$('#dFace');if(fk){fe.src=afFace(fk)||trainerImg(fk);fe.style.display='block';}else fe.style.display='none';}D.ty=typeInto($('#dText'));$('#dlg').classList.toggle('typing',D.ty.active());D.ty.done.then(()=>$('#dlg').classList.remove('typing'));$('#dlg').classList.add('on');placeDlg();});}
-function advance(){if(!D.active)return;if(D.ty&&D.ty.active()){D.ty.finish();return;}D.active=false;$('#dlg').classList.remove('on');const r=D.res;D.res=null;r&&r();}
+function say(who,text){return new Promise(res=>{D.active=true;D.res=res;$('#dWho').textContent=who||'';$('#dWho').style.display=who?'block':'none';$('#dText').innerHTML=josaFix(esc(text)).replace(/\n/g,'<br>');speak($('#dText').textContent);{const fk=faceKey(who),fe=$('#dFace');if(fk){fe.src=afFace(fk)||trainerImg(fk);fe.style.display='block';}else fe.style.display='none';}D.ty=typeInto($('#dText'));$('#dlg').classList.toggle('typing',D.ty.active());D.ty.done.then(()=>$('#dlg').classList.remove('typing'));$('#dlg').classList.add('on');placeDlg();});}
+function advance(){if(!D.active)return;if(D.ty&&D.ty.active()){D.ty.finish();return;}D.active=false;ttsStop();$('#dlg').classList.remove('on');const r=D.res;D.res=null;r&&r();}
 const TIPS=['풀숲에 들어가면 야생 수호수를 만나요. HP를 줄일수록 잘 잡혀요!','「강력」이라고 적힌 기술은 답을 직접 써야 하지만 그만큼 세요!','속성마다 강한 상대 둘, 약한 상대 둘이 있어요. 기술 칸의 ◎ 표시를 찾아보세요!','연속으로 성공하면 공격이 점점 강해져요. 🔥','분수를 쓸 때는 「분수 칸」을 눌러요.','놓친 주문은 수련 기록의 다시 도전 수첩에 모여요.','쉼터(♥)는 공짜로 회복해 주고, 쓰러지면 마지막 쉼터로 돌아와요.','모험 지도(🗺️)에서 가 본 곳으로 바로 날아갈 수 있어요.','물을 보고 확인을 누르면 낚시를 할 수 있어요. 🎣 드문 수호수가 물기도 해요!','3연속으로 성공하면 급소에 맞아요!','잠든 동료는 주문을 풀어야 깨어나요. 💤','상점의 기술 책으로 다른 속성 기술을 가르칠 수 있어요.','쉼터에 가면 수호수의 알을 맡을 때가 있어요. 🥚','땅에 떨어진 선물 상자를 찾아보세요. 🎁','주문을 8번 성공하면 각성 일격을 쓸 수 있어요. 🌟','복수전 도장에서 놓친 주문에 다시 도전해 보세요.','수련의 탑은 몇 층까지 오를 수 있을까요? 🗼','향을 피우면 풀숲에서 만나는 횟수를 조절할 수 있어요.'];
 const TR_NAMES=['수련생 지호','수련생 하은','수련생 도윤','수련생 수아','수련생 예준','수련생 지우','수련생 시우','수련생 하린','수련생 주원','수련생 윤서','수련생 민준','수련생 서연'];
 async function npcEvent(n){
@@ -5151,12 +5328,14 @@ function morePage(){
 }
 function setPage(){
   const sp=['보통','빠름','바로'][textMode];
-  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['cloud',`☁️ 백업 코드: ${cloudOk(sv.cloud)?cloudFmt(sv.cloud):'아직 없음'}`,'눌러서 지금 온라인 백업해요. 기기가 바뀌면 처음 화면의 저장 코드에서 이 코드로 불러와요.'],['bspd',`전투 속도: ${['보통','빠르게','아주 빠르게'][battleSpeed]}`,'전투 연출과 메시지가 넘어가는 시간을 줄여요.'],...(teacher?[['units','📚 배운 단원 고르기',`아직 안 배운 단원을 끄면 그 단원 문제가 나오지 않아요. (켜짐 ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length})`]]:[]),...(teacher?[['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.']]:[]),['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
+  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['tts',`🔊 읽어 주기: ${ttsOn&&ttsOk()?'켬':'끔'}`,ttsOk()?'대사를 소리로 읽어 줘요. 문제 칸의 🔊를 누르면 문제도 읽어 줘요.':'이 기기에는 한국어 음성이 없어서 읽어 줄 수 없어요.'],['cloud',`☁️ 백업 코드: ${cloudOk(sv.cloud)?cloudFmt(sv.cloud):'아직 없음'}`,'눌러서 지금 온라인 백업해요. 기기가 바뀌면 처음 화면의 저장 코드에서 이 코드로 불러와요.'],['bspd',`전투 속도: ${['보통','빠르게','아주 빠르게'][battleSpeed]}`,'전투 연출과 메시지가 넘어가는 시간을 줄여요.'],...(teacher?[['units','📚 배운 단원 고르기',`아직 안 배운 단원을 끄면 그 단원 문제가 나오지 않아요. (켜짐 ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length})`],['class','📋 반 진행 현황','학생들의 배지, 단원별 정답률, 다시 도전 수첩, 엔딩을 한눈에 봐요.']]:[]),...(teacher?[['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.']]:[]),['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
     if(g==='cloud'){toast('☁️ 백업 중…');const c=await cloudBackup(true);persist();if(c){const pr=ask(`<h3>☁️ 백업했어요</h3><p class="note">아래 백업 코드를 복사해 두세요. 기기가 바뀌면 처음 화면 → 📦 저장 코드에서 이 코드로 불러와요.</p>${cloudCopyBox(c)}`,[{t:'확인',v:1}]);cloudCopyBind();await pr;}else toast('인터넷에 연결되지 않아 백업하지 못했어요.',3200);setPage();}
     if(g==='bspd'){battleSpeed=(battleSpeed+1)%3;try{localStorage.setItem(SKEY+'.bspd',battleSpeed);}catch(e){}setPage();}
     if(g==='units')unitsPage();
+    if(g==='class')classPage(setPage);
     if(g==='teach'){if(teacher)setTeacher(false);else if(await teacherPrompt()){setTeacher(true);toast('🔑 교사 모드를 켰어요.');}setPage();}
     if(g==='snd'){muted=!muted;try{localStorage.setItem(SKEY+'.mute',muted?'1':'0');}catch(e){}setPage();}
+    if(g==='tts'){if(!ttsOk()){toast('이 기기에는 한국어 음성이 없어요.');return;}ttsOn=!ttsOn;try{localStorage.setItem(SKEY+'.tts',ttsOn?'1':'0');}catch(e){}if(ttsOn)speak('이제 대사를 읽어 줄게요.');setPage();}
     if(g==='txt'){textMode=(textMode+1)%3;try{localStorage.setItem(SKEY+'.txt',textMode);}catch(e){}setPage();}
     if(g==='back')menuPage();
     if(g==='title'){savePos();const f=window._menuDone;window._menuDone=null;f&&f();mode='title';bgm(null);renderTitle();showScr('title');}});
@@ -5171,7 +5350,7 @@ const cloudCopyBind=()=>{const b=$('#ccCopy');if(b)b.onclick=()=>copyText($('#cc
 function unitsPage(back=setPage){
   const grades=Object.keys(GRADES).map(Number).sort();
   page(`<div class="topbar"><h2>📚 ${GRADE}학년 배운 단원 고르기</h2></div><div class="row" style="margin-bottom:6px">${grades.map(g=>`<button class="btn ${g===GRADE?'blue':'gray'}" data-gr="${g}">${g}학년</button>`).join('')}</div><p class="note" style="margin-bottom:6px">끈 단원은 전투·진화·온라인 대전 문제에 나오지 않아요. 지역 수련은 그대로예요.</p><div class="mlist">${ALL_UNITS.map(u=>`<button class="btn ${UNITS_OFF.has(u)?'gray':'blue'}" data-u="${u}">${UNITS_OFF.has(u)?'⬜':'✅'} ${u}단원 · ${UNIT_NAME[u]}</button>`).join('')}</div><div class="row" style="margin-top:8px"><button class="btn gray" id="uAll">모두 켜기</button>${backBtn()}</div>
-  <div class="win" style="margin-top:10px"><b>🔗 학생용 링크</b><p class="note">이 링크로 들어온 학생은 ${GRADE}학년, 지금 켜진 단원 문제만 풀어요. 몬스터와 진행은 그대로 이어져요.</p><textarea class="tx" id="uLink" readonly rows="2">${esc(gradeLink())}</textarea><button class="btn" id="uCopy">링크 복사</button></div>`);
+  <div class="win" style="margin-top:10px"><b>🔗 학생용 링크</b><p class="note">이 링크로 들어온 학생은 ${GRADE}학년, 지금 켜진 단원 문제만 풀어요. 몬스터와 진행은 그대로 이어져요.${myClass()?` 반 코드 ${myClass()}도 들어 있어서 📋 반 진행 현황에 올라와요.`:''}</p><textarea class="tx" id="uLink" readonly rows="2">${esc(gradeLink())}</textarea><button class="btn" id="uCopy">링크 복사</button></div>`);
   const save=()=>{try{localStorage.setItem(SKEY+'.unitsOff',JSON.stringify([...UNITS_OFF]));}catch(e){}};
   document.querySelectorAll('[data-gr]').forEach(b=>b.onclick=()=>{const g=+b.dataset.gr;if(g===GRADE)return;setGrade(g);try{localStorage.setItem(SKEY+'.grade',g);}catch(e){}UNITS_OFF.clear();save();toast(`${g}학년 문제로 바꿨어요. 배운 단원을 다시 골라 주세요.`);unitsPage(back);}); // 단원 번호의 뜻이 학년마다 달라 켜고 끈 설정은 새로 시작한다
   $('#uCopy').onclick=()=>copyText($('#uLink'),'링크를 복사했어요!');
@@ -5182,8 +5361,8 @@ function unitsPage(back=setPage){
 async function titleTeacher(){
   if(!teacher){if(!await teacherPrompt())return;setTeacher(true);toast('🔑 교사 모드를 켰어요.');}
   const toTitle=()=>{renderTitle();showScr('title');};
-  const c=await ask(`<h3>🔑 선생님 설정</h3><p class="note">교사 모드가 켜져 있어요. 전투·진화에서 문제가 나오지 않아요.<br>배운 단원: ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length}개 켜짐<br>처음 화면의 🔑로 언제든 켜고 끌 수 있어요. 게임 화면의 🔑 버튼은 교사 모드가 켜져 있을 때만 보여요.</p>`,[{t:'📚 배운 단원 고르기',v:'u',cls:'blue'},{t:'교사 모드 끄기',v:'off',cls:'gray'},{t:'닫기',v:'',cls:'gray'}]);
-  if(c==='u')unitsPage(toTitle);if(c==='off'){setTeacher(false);toast('교사 모드를 껐어요.');}
+  const c=await ask(`<h3>🔑 선생님 설정</h3><p class="note">교사 모드가 켜져 있어요. 전투·진화에서 문제가 나오지 않아요.<br>배운 단원: ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length}개 켜짐<br>처음 화면의 🔑로 언제든 켜고 끌 수 있어요. 게임 화면의 🔑 버튼은 교사 모드가 켜져 있을 때만 보여요.</p>`,[{t:'📚 배운 단원 고르기',v:'u',cls:'blue'},{t:'📋 반 진행 현황',v:'c',cls:'blue'},{t:'교사 모드 끄기',v:'off',cls:'gray'},{t:'닫기',v:'',cls:'gray'}]);
+  if(c==='u')unitsPage(toTitle);if(c==='c')classPage(toTitle);if(c==='off'){setTeacher(false);toast('교사 모드를 껐어요.');}
 }
 /** 교사 비밀번호를 받는다. 맞으면 true */
 function teacherPrompt(){return new Promise(res=>{modal(`<h3>🔑 교사 모드</h3><p class="note">선생님 비밀번호를 입력하세요.</p><input class="tx" id="tpIn" type="password" maxlength="12" autocomplete="off"><p class="note" id="tpMsg" style="color:#c0392b;min-height:1.2em"></p><div class="row"><button class="btn gray" id="tpNo">취소</button><button class="btn blue" id="tpYes">확인</button></div>`);
@@ -5371,6 +5550,8 @@ async function mpLoad(){
     leave(){if(un){un();un=null;}if(pr){const c=rc;D2.onDisconnect(pr).cancel();D2.remove(pr).then(()=>D2.get(rm(c))).then(x=>{if(x.exists()&&!x.val().players)return D2.remove(rm(c));}).catch(()=>{});pr=null;}},
     saveSet:(c,o)=>D2.set(D2.ref(db,'mm-saves/'+c),o),
     async saveGet(c){const x=await D2.get(D2.ref(db,'mm-saves/'+c));return x.exists()?x.val():null;},
+    classSet:(c,id,o)=>D2.set(D2.ref(db,'mm-class/'+c+'/'+id),o),
+    async classGet(c){const x=await D2.get(D2.ref(db,'mm-class/'+c));return x.exists()?x.val():{};},
     me:(c,o)=>D2.update(D2.ref(db,'mm-rooms/'+c+'/players/'+uid),o),
     start:c=>D2.update(rm(c),{step:1}),
     turn:(c,n,o)=>D2.set(D2.ref(db,'mm-rooms/'+c+'/players/'+uid+'/turns/'+n),o)};
@@ -5382,8 +5563,37 @@ const CLOUD_A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',cloudFmt=c=>c.slice(0,5)+'-'+c.
 async function cloudBackup(force){
   if(!sv||(!force&&Date.now()-cloudAt<180000))return null;cloudAt=Date.now();
   try{if(!cloudOk(sv.cloud))sv.cloud=Array.from({length:10},()=>CLOUD_A[Math.floor(Math.random()*32)]).join('');
-    const mp=await mpLoad();await Promise.race([mp.saveSet(sv.cloud,{d:btoa(encodeURIComponent(JSON.stringify(sv))),t:Date.now()}),sleep(8000).then(()=>{throw Error('timeout');})]);return sv.cloud;}
+    const mp=await mpLoad();await Promise.race([mp.saveSet(sv.cloud,{d:btoa(encodeURIComponent(JSON.stringify(sv))),t:Date.now()}),sleep(8000).then(()=>{throw Error('timeout');})]);
+    if(CLASS)mp.classSet(CLASS,sv.cloud,classSummary()).catch(e=>console.warn(e));return sv.cloud;}
   catch(e){console.warn(e);return null;}
+}
+// ── 반 진행 현황: 학생은 백업할 때 요약만 mm-class/반코드/백업코드 에 올리고, 교사 모드에서 반 코드로 모아 본다 ──
+/** 반에 올리는 요약. 단원별 정답은 'c/t'를 쉼표로 이은 글자 (지금 학년 단원 순서) */
+function classSummary(){
+  const u=ALL_UNITS.map(n=>{const a=unitAcc(n);return a.c+'/'+a.t;}).join(',');
+  return{n:String(sv.name).slice(0,10),g:GRADE,b:Object.keys(sv.badges).length,ok:sv.ok,tot:sv.total,u,w:gradeWrong().length,e:Object.keys(sv.endings||{}).length,t:Date.now()};
+}
+async function classPage(back){
+  const code=myClass();
+  if(!code){
+    const c=await ask(`<h3>📋 반 진행 현황</h3><p class="note">반 코드를 만들면 학생용 링크에 함께 들어가요. 그 링크로 들어온 학생이 저장하거나 배지를 받을 때 요약(이름·배지·단원별 정답률·수첩·엔딩)이 올라와요.<br>반 코드를 아는 사람은 누구나 요약을 볼 수 있으니, 학생 이름은 번호나 별명으로 쓰게 해 주세요.</p>`,[{t:'새 반 코드 만들기',v:'new',cls:'blue'},{t:'다른 기기에서 만든 코드 넣기',v:'in'},{t:'닫기',v:'',cls:'gray'}]);
+    if(c==='new'){try{localStorage.setItem(SKEY+'.myClass',Array.from({length:6},()=>CLOUD_A[Math.floor(Math.random()*32)]).join(''));}catch(e){}return classPage(back);}
+    if(c==='in'){const v=(prompt('반 코드 6자리를 넣어 주세요.')||'').trim().toUpperCase();if(/^[A-Z0-9]{6}$/.test(v)){try{localStorage.setItem(SKEY+'.myClass',v);}catch(e){}return classPage(back);}if(v)toast('반 코드는 6자리예요.');}
+    return back();
+  }
+  page(`<div class="topbar"><h2>📋 반 진행 현황</h2><span class="hchip">반 코드 ${code}</span></div><p class="note">학생용 링크(📚 배운 단원 고르기)에 이 반 코드가 들어가요. 학생이 저장하거나 배지를 받으면 아래 표가 바뀌어요.</p><div id="clT" class="win" style="margin-top:6px">불러오는 중…</div><div class="row" style="margin-top:6px"><button class="btn blue" id="clR">🔄 새로 불러오기</button><button class="btn gray" id="clX">반 코드 지우기</button></div>${backBtn()}`);
+  $('#pgB').onclick=back;$('#clR').onclick=()=>classPage(back);
+  $('#clX').onclick=async()=>{if(await ask('<h3>이 기기에서 반 코드를 지울까요?</h3><p class="note">올라온 기록은 지워지지 않아요. 같은 코드를 다시 넣으면 다시 볼 수 있어요.</p>',[{t:'지우기',v:1,cls:'red'},{t:'취소',v:0,cls:'gray'}])){try{localStorage.removeItem(SKEY+'.myClass');}catch(e){}classPage(back);}};
+  let rows;try{const mp=await mpLoad();rows=Object.values(await Promise.race([mp.classGet(code),sleep(8000).then(()=>{throw Error('timeout');})]));}catch(e){$('#clT').textContent='인터넷에 연결되지 않아 불러오지 못했어요.';return;}
+  // 학생 기기에서 온 값이라 믿지 않고 숫자·글자로 바로잡아 쓴다
+  rows=rows.filter(r=>r&&typeof r==='object').map(r=>({n:String(r.n||'?').slice(0,10),g:toNum(r.g),b:toNum(r.b),ok:toNum(r.ok),tot:toNum(r.tot),w:toNum(r.w),e:toNum(r.e),t:toNum(r.t),u:String(r.u||'').split(',').map(x=>{const[c,t]=x.split('/').map(Number);return{c:c||0,t:t||0};})}));
+  if(!rows.length){$('#clT').innerHTML='<p class="note">아직 올라온 학생이 없어요.</p>';return;}
+  const pct=(c,t)=>t?Math.round(c/t*100)+'%':'-',day=t=>{const d=new Date(t);return t?`${d.getMonth()+1}/${d.getDate()}`:'-';};
+  const weak=r=>{const l=r.u.map((x,k)=>({k:k+1,...x})).filter(x=>x.t>=5).sort((a,b)=>a.c/a.t-b.c/b.t)[0];return l?`${r.g===GRADE&&UNIT_NAME[l.k]?UNIT_NAME[l.k]:l.k+'단원'} ${pct(l.c,l.t)}`:'-';};
+  rows.sort((a,b)=>a.n.localeCompare(b.n,'ko'));
+  const same=rows.filter(r=>r.g===GRADE),avg=ALL_UNITS.map((u,k)=>{const s=same.reduce((a,r)=>({c:a.c+(r.u[k]?r.u[k].c:0),t:a.t+(r.u[k]?r.u[k].t:0)}),{c:0,t:0});return{u,...s};}).filter(x=>x.t).sort((a,b)=>a.c/a.t-b.c/b.t);
+  $('#clT').innerHTML=`<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:13px;width:100%;white-space:nowrap"><tr style="text-align:left"><th>이름</th><th>학년</th><th>🏅</th><th>정답률</th><th>가장 약한 단원</th><th>수첩</th><th>엔딩</th><th>마지막</th></tr>${rows.map(r=>`<tr style="border-top:1px solid #0002"><td>${esc(r.n)}</td><td>${r.g}</td><td>${r.b}</td><td>${pct(r.ok,r.tot)}</td><td>${esc(weak(r))}</td><td>${r.w}</td><td>${r.e}</td><td>${day(r.t)}</td></tr>`).join('')}</table></div>
+   ${avg.length?`<p style="margin-top:8px"><b>${GRADE}학년 단원별 반 정답률</b> (낮은 순)</p><p class="note">${avg.map(x=>`${esc(UNIT_NAME[x.u]||x.u+'단원')} ${pct(x.c,x.t)}`).join(' · ')}</p>`:''}`;
 }
 function mpRoom(v){NET.room=v;if(NET.onRoom)NET.onRoom(v);NET.notify();}
 const waitRoom=test=>new Promise(res=>{const chk=()=>{const r=test(NET.room);if(r!==undefined&&r!==null&&r!==false){res(r);return;}NET.listeners.push(chk);};chk();});
