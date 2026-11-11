@@ -3039,7 +3039,9 @@ async function doTrade(m){
 //  추가 시스템: 지닌 물건·친밀도·날씨·각성·의뢰·수련의 탑·오답 훈련·업적·향
 //  온라인 대전은 공정하도록 물건·친밀도·날씨·각성을 적용하지 않는다
 // ════════════════════════════════════════════════
-const CFG2={nightRestMs:10*60e3,hallLvShift:-4,bossLvAdd:{1:7,2:4},allyLvDrop:6,nightRate:.3,nightStarter:.12,rematchMs:20*3600e3,rematchLv:5,bushBadges:3,rockBadges:6,outbreakRate:.6,outbreakShiny:3,regionDexCoin:300,regionDexItem:['orb2',3],heldBand:1.15,heldCharm:.85,heldCap:1.5,luckyCoinPerLv:2,frGood:40,frBest:80,frEndure:.25,frMax:100,frWin:3,frFaint:2,weatherBoost:1.2,weatherChance:.5,awakenNeed:8,awakenPow:150,runSpeed:1.8,repelSteps:100,lureSteps:60,lureMul:3,questCount:3,towerUnlock:1,towerHeal:.2,trainQ:5};
+const CFG2={nightRestMs:10*60e3,hallLvShift:-4,bossLvAdd:{1:7,2:4},allyLvDrop:6,nightRate:.3,nightStarter:.12,rematchMs:20*3600e3,rematchLv:5,bushBadges:3,rockBadges:6,outbreakRate:.6,outbreakShiny:3,regionDexCoin:300,regionDexItem:['orb2',3],heldBand:1.15,heldCharm:.85,heldCap:1.5,luckyCoinPerLv:2,frGood:40,frBest:80,frEndure:.25,frMax:100,frWin:3,frFaint:2,weatherBoost:1.2,weatherChance:.5,awakenNeed:8,awakenPow:150,runSpeed:1.8,repelSteps:100,lureSteps:60,lureMul:3,questCount:3,towerUnlock:1,towerHeal:.2,trainQ:5,
+ // 최종전과 엔딩 조건
+ finLv:56,endWrong:300,endTrained:20,endStreak:30,endTower:30,endDexAll:.9,endDexHalf:.5,endEggs:5,endTrainers:40,endWear:3,endDays:30};
 Object.assign(ITEMS,{
   band:{n:'힘의 머리띠',ic:'🎀',d:'지니면 주는 피해가 15% 늘어요.',p:400,held:1},charm:{n:'방패 부적',ic:'🧿',d:'지니면 받는 피해가 15% 줄어요.',p:400,held:1},
   berry:{n:'회복 열매',ic:'🍎',d:'지니면 전투마다 한 번, HP가 절반 이하일 때 1/4 회복해요.',p:300,held:1},clear:{n:'맑은 구슬',ic:'🫧',d:'지니면 전투마다 한 번, 상태 이상을 막아요.',p:300,held:1},
@@ -3421,9 +3423,9 @@ const STORY={
  8:{enter:['곱셈 설원에 눈보라가 몰아친다. 얼음 위에 커다란 그림자가 서 있다.'],guard:'나는 간부 말소. 소거를 이겼다지? 곱할수록 작아지는 절망을 보여 주마.',guardWin:'이럴 수가… 너는 왜 틀려도 다시 일어서는 거지?',badge:'말소마저 이겼구나. 틀려도 다시 푸는 힘, 그게 네 진짜 힘이야.',boss:1,town:['분수를 곱했더니 눈송이가 작아졌어요!','간부가 왜 틀리는 걸 그렇게 싫어할까요?']},
  9:{enter:['거울 호수에 비친 모습이 뒤틀려 있다. 대칭이 무너지고 있다.'],guard:'거울 속 너는 틀린 답만 고른다고! 대칭 따윈 부숴 주지!',guardWin:'접어도 돌려도 겹치는 걸 다 찾아냈잖아!',badge:'거울이 돌아왔구나. 호수 바닥에서 옛 기록을 찾았단다. 제로도 한때는 수호수 연구생이었대.',town:['제 왼손이 거울에서도 왼손이에요!','호수가 다시 맑아지면 좋겠어요.']},
  10:{enter:['소수 화산이 끓어오른다. 소수점이 제멋대로 옮겨 다니며 온도계가 고장 났다.'],guard:'소수점 한 칸이면 화산이 폭발한다! 단장님 계획도 거의 끝났다고!',guardWin:'소수점 자리를 정확히 맞추다니… 폭발이 멈췄어!',badge:'단장 제로가 큐브 동굴에 있다는 소식이야. 결정의 힘을 전부 지우려 한대. 서둘러!',town:['온도계가 3도였다가 300도였다가 해요.','한별이라는 아이가 동굴로 뛰어갔어요!']},
- 11:{enter:['큐브 동굴 깊은 곳, 보이지 않는 모서리 너머에서 목소리가 울린다.','「왔구나. 틀리고도 계속 걸어온 아이.」'],guard:'나는 단장 제로. 어릴 적 오답 하나로 놀림받던 나는 맹세했지. 틀림이 없는 세상을 만들겠다고. 네 오답도 전부 지워 주마!',guardWin:'…어째서지? 너는 수없이 틀렸을 텐데, 어째서 그렇게 웃으며 싸우는 거냐?',badge:'오답을 지운다고 답을 아는 건 아니지. 제로도 언젠가 그걸 깨닫길 바라자. 이제 마지막 결정이다!',boss:2,town:['동굴에 있던 검은 옷 사람들이 어디론가 도망갔어요.','보이지 않는 면도 분명히 있대요.']},
- 12:{enter:['구름 위의 섬. 마지막 결정이 희미하게 빛나고 있다.','제로의 목소리: 「가능성은 언제나 반반이 아니다. 끝까지 보여 다오.」'],guard:'단장님은 흔들리고 있어… 하지만 나는 끝까지 지운다! 네가 이길 가능성은 0이야!',guardWin:'가능성이 0이 아니었잖아… 내가 졌어.',badge:'열두 결정이 모두 빛나기 시작했어! 이제 수호의 전당으로 가렴. 네 차례야.',town:['주사위가 멈추지 않아요.','전당에 오르는 사람은 정말 오랜만이래요.']},
- 13:{enter:['열두 결정이 전당을 비춘다. 입구에 낯익은 사람이 서 있다.','제로: 「…내 공책이다. 오답으로 가득하지. 처음으로 다시 펼쳐 보려 한다.」','제로: 「챔피언이 되어 보여 다오. 틀림을 품은 사람이 얼마나 강한지.」'],town:['전당 수호자들은 열두 결정의 힘을 모두 쓴대요.']}
+ 11:{enter:['큐브 동굴 깊은 곳, 보이지 않는 모서리 너머에서 목소리가 울린다.','「왔구나. 틀리고도 계속 걸어온 아이.」'],guard:'나는 단장 제로. 어릴 적 오답 하나로 놀림받던 나는 맹세했지. 틀림이 없는 세상을 만들겠다고. 네 오답도 전부 지워 주마!',guardWin:'…어째서지? 너는 수없이 틀렸을 텐데, 어째서 그렇게 웃으며 싸우는 거냐?',badge:'제로는 도망쳤어. 열두 결정이 모두 빛나는 날, 그 빛을 노릴 거야. 마지막 결정을 지키되 방심하지 마!',boss:2,town:['동굴에 있던 검은 옷 사람들이 어디론가 도망갔어요.','보이지 않는 면도 분명히 있대요.']},
+ 12:{enter:['구름 위의 섬. 마지막 결정이 희미하게 빛나고 있다.','제로의 목소리: 「가능성은 언제나 반반이 아니다. 끝까지 보여 다오.」'],guard:'단장님은 흔들리고 있어… 하지만 나는 끝까지 지운다! 네가 이길 가능성은 0이야!',guardWin:'가능성이 0이 아니었잖아… 내가 졌어.',badge:'열두 결정이 모두 빛나! 전당으로 가렴. …그런데 제로가 그 빛을 기다린다는 소문이 있어.',town:['주사위가 멈추지 않아요.','전당에 오르는 사람은 정말 오랜만이래요.']},
+ 13:{enter:['열두 결정의 빛이 전당 꼭대기로 흘러간다.','어디선가 지우개 가루 냄새가 난다…'],town:['전당 수호자들은 열두 결정의 힘을 모두 쓴대요.']}
 };
 // 배지를 받은 뒤: 지우개단이 물러나며 남기는 말, 그 뒤 주민들이 하는 말
 const STORY_AFTER={
@@ -3437,7 +3439,7 @@ const STORY_AFTER={
  8:['곱할수록 작아지는 게 절망만은 아니라는 건가…','눈보라가 그쳤어요. 진분수를 곱하면 작아진다는 것도 배웠어요!'],
  9:['거울이 똑바로 비추잖아? 어떻게 된 거야!','호수에 비친 제 모습이 다시 똑같아요.'],
  10:['소수점이 제자리로… 폭발이 멈췄다고?','온도계가 정확해졌어요. 소수점 한 칸이 이렇게 중요하다니!'],
- 11:['…가거라. 마지막 결정은 구름 위에 있다.','보이지 않던 모서리까지 다 보여요!'],
+ 11:['…아직 끝나지 않았다. 열두 결정이 한곳에 모이는 날, 모든 것을 지우겠다.','보이지 않던 모서리까지 다 보여요!'],
  12:['가능성이 0이 아니었어… 단장님께 뭐라고 하지.','구름 위에 열두 번째 빛이 돌아왔어요!']
 };
 // 제로의 찢어진 공책: 지역마다 한 장씩 숨어 있다 (장 번호 = 지역 번호)
@@ -3446,14 +3448,88 @@ const ZERO_PAGES=['3학년 받아쓰기 시험 날. 칠판 앞에서 7×8을 54�
 const HB_SCENE={8:{pre:['이번엔 둘이서 가자! 내가 왼쪽, 네가 오른쪽!'],post:'봤지? 약속 지켰어. 우리 꽤 좋은 짝꿍인데?',ally:true},4:{pre:['…너 왔구나. 나, 소거한테 졌어. 받아내림 문제에서 자꾸 틀렸거든.','틀릴 때마다 머리가 하얘져. 너는 안 그래?'],post:'틀려도 다시 풀면 되는 거였구나. 고마워. 다음엔 내가 너를 도와줄게.'}};
 // 챔피언이 된 뒤 관장들이 하는 말
 const LEADER_POST={1:'챔피언이 된 걸 축하해. 괄호처럼 순서를 지키며 걸어온 너답구나.',2:'숲의 열매가 해마다 고르게 열려. 네가 지켜 준 덕분이야.',3:'오늘도 배들이 제시간에 떠나. 챔피언, 언제든 항구에 놀러 와!',4:'사막의 거리를 다시 잴 수 있게 됐어. 네 발자국도 지도에 남겼단다.',5:'모든 것에는 짝이 있지. 너와 수호수처럼 말이야.',6:'넓이를 재듯 네 성장도 재 보고 싶어. 정말 많이 컸구나.',7:'안개가 걷힌 늪은 이렇게 맑단다. 정확한 답을 찾아 준 덕분이야.',8:'곱할수록 커지는 것도, 작아지는 것도 있지. 네 실력은 늘 커졌고!',9:'거울 호수에 비친 챔피언의 얼굴, 처음 왔을 때보다 훨씬 당당해.',10:'화산이 잠잠해. 소수점 하나도 놓치지 않던 너를 기억할게.',11:'보이지 않던 모서리까지 다 본 너라면, 어떤 문제도 풀 수 있을 거야.',12:'챔피언이 될 가능성은 0이 아니었지. 처음부터 말이야.'};
-const ENDING_LINES=[
- ['챔피언 아라','훌륭해. 너는 놓친 주문을 지우지 않고, 다시 풀어서 이겨 냈구나.'],
- ['제로','…나는 오답을 지우려 했지. 네 다시 도전 수첩에는 네가 걸어온 길이 다 있더군.'],
- ['제로','이제 나도 처음부터 다시 풀어 보겠다. 지우개단은 오늘로 해산이다.'],
- ['한별','결국 네가 해냈네! 다음엔 내가 이길 거니까 각오해. 그래도… 정말 멋졌어.'],
- ['수리 박사','고맙다. 수의 결정이 모두 돌아왔어. 세상의 시계가 다시 움직이는구나.'],
- ['','열두 결정의 빛이 하나로 모여 하늘로 솟았다. 전당 앞에 눈부신 빛이 내려앉았다…']
+// 최종전: 챔피언 아라를 이기면 열두 결정의 빛을 노리고 지우개단이 나타난다
+const FINALE_PRE=[
+ ['챔피언 아라','훌륭해. 놓친 주문을 지우지 않고 다시 풀어서 이겨 냈구나. 이제 네가 챔피언이야.'],
+ ['','그 순간, 전당의 열두 결정이 한꺼번에 흐려졌다.'],
+ ['단장 제로','기다렸다. 열두 결정의 빛이 한곳에 모이는 이 순간을.'],
+ ['단장 제로','이 빛을 지우면 문제도, 틀림도 사라진다. 아무도 다시는 놀림받지 않아.'],
+ ['간부 소거','단장님 앞은 우리가 막는다.'],['간부 말소','…가자, 소거.'],
+ ['한별','__NAME__! 늦어서 미안. 이번에도 둘이서 가자!']];
+const FINALE_MID=[['간부 말소','…졌어요, 단장님. 그런데 이상하게 후련해요.'],['간부 소거','틀려도 다시 일어나는 쪽이… 더 강했던 건가.'],['단장 제로','물러나라. 마지막은 내가 직접 지운다. 7×8 앞에서 멈춘 그날부터 바란 건 이것뿐이다!']];
+// 오답 축제에서 소거·말소·한별이 자랑하는 오답: 그 학년의 4지역·8지역 단원에 맞춘다
+const FEST_G={
+ 1:['더 긴 줄을 짧다고 했다!','세모를 네모라고 불렀다!','무엇이 더 긴지 헷갈렸던 거!'],
+ 2:['자의 1에 맞춰 놓고 길이를 쟀다!','칠칠은 마흔둘이라고 외웠다!','자 눈금을 잘못 읽었던 거!'],
+ 3:['23×4에서 받아올림을 잊었다!','나머지를 그냥 버렸다!','곱셈에서 받아올림을 잊었던 거!'],
+ 4:['도형을 밀었는데 뒤집었다고 했다!','둔각삼각형을 예각삼각형이라고 했다!','돌리기랑 뒤집기를 헷갈렸던 거!'],
+ 5:['받아내림을 세 번 연속 틀렸다!','분수를 곱했는데 커질 줄 알았다!','받아내림 문제에서 머리가 하얘졌던 거!'],
+ 6:['기준량과 비교하는 양을 바꿔 썼다!','소수점을 한쪽만 옮겼다!','기준량이 뭔지 헷갈렸던 거!']};
+// 엔딩: 조건을 채운 것 가운데 번호가 작은 것이 나온다. 조건 숫자는 CFG2.end*
+const pagesN=()=>Object.keys(stories().pages||{}).length;
+const rivalsN=()=>RIVAL.at.filter(r=>(sv.rivals||{})[r]).length;
+const dexRate=()=>Object.keys(sv.caught).filter(k=>sv.caught[k]&&+k!==LEGEND).length/(SP.length-2);
+const firstToEnd=()=>{const m=sv.party[0];return !!m&&!!sv.starter&&family(sv.starter).includes(m.sp)&&!SP[m.sp].evo;};
+const ENDINGS=[
+ {n:'다시 펼친 공책',h:()=>'찢어진 공책을 모두 모으고, 한별과의 승부도 모두 이기면…',f:()=>pagesN()>=ZERO_PAGES.length&&rivalsN()>=RIVAL.at.length,
+  epi:'제로는 오답 연구회를 열었다. 연구소에는 오늘도 틀린 답을 자랑하는 목소리가 가득하다.',
+  l:[['','가방 속 열두 장의 공책 쪽이 환하게 빛난다.'],['제로','그건… 내 공책이잖아. 버리고 온 줄 알았는데.'],['한별','지역마다 한 장씩 떨어져 있었어요. 저도 머리가 하얘졌던 적이 있어서, 읽다가 울 뻔했어요.'],['제로','7×8=56. 마지막 장은 다시 풀어 볼 자리라고 비워 뒀었지.'],['제로','지우개단은 오늘로 해산이다. 오늘부터는 오답 연구회다. 소거, 말소, 같이 가겠나?'],['간부 말소','단장님… 아니, 회장님. 이번엔 웃을 수 있을 것 같아요.'],['수리 박사','연구소 네 자리는 그대로 비워 뒀단다. 이번엔 다 같이 쓰자꾸나.']]},
+ {n:'돌려준 공책',h:()=>'찢어진 공책을 모두 모으면…',f:()=>pagesN()>=ZERO_PAGES.length,
+  epi:'제로는 연구소로 돌아가 오답 공책을 다시 펼쳤다.',
+  l:[['','열두 장의 공책 쪽을 제로에게 내밀었다.'],['제로','…3학년 그날부터 마지막 장까지, 다 읽었나.'],['제로','부끄럽군. 그런데 이상하게, 지우고 싶지 않다.'],['제로','박사님께 가 보겠다. 늦었지만 그 말을 다시 들어 보고 싶다. \'틀린 답에도 길이 있단다.\''],['','지우개단은 흩어졌다. 그날 밤, 연구소 창가에 불이 하나 더 켜졌다.']]},
+ {n:'짝꿍의 약속',h:()=>'한별과의 승부를 모두 이기면…',f:()=>rivalsN()>=RIVAL.at.length,
+  epi:'소거와 말소는 한별의 수련 모임에 들어갔다. 제로는 홀로 길을 떠났다.',
+  l:[['한별','저도 소거한테 졌었어요. 머리가 하얘졌죠. 그런데 이 친구가 다시 풀면 된다고 했어요.'],['한별','틀린 적 있는 아이들이 모인 거라면서요. 그럼 우리랑도 같이 할 수 있잖아요.'],['제로','…너희 둘은 틀린 걸 감추지 않는군.'],['제로','소거, 말소. 저 아이들한테 배워라. 나는 혼자 생각할 시간이 필요하다.'],['간부 소거','…한별, 내가 자꾸 틀리는 문제 같이 풀어 줄 수 있어?'],['한별','물론이지! 오늘부터 우리 수련 모임 회원이야.']]},
+ {n:'가장 많이 틀린 챔피언',h:()=>`틀린 주문이 ${CFG2.endWrong}개를 넘으면…`,f:()=>sv.total-sv.ok>=CFG2.endWrong,
+  epi:'제로는 틀린 답을 세는 대신, 풀어 본 문제를 세기 시작했다.',
+  l:()=>[['제로',`너는… 지금까지 ${sv.total-sv.ok}번이나 틀렸군. 내 공책보다 훨씬 많아.`],['제로','그렇게 틀리고도 여기까지 왔단 말인가. 나는 한 번 틀리고 멈췄는데.'],['한별','많이 틀렸다는 건, 그만큼 많이 풀어 봤다는 거잖아요.'],['제로','…틀린 수만큼 걸어온 거였군. 지우개단은 해산이다. 나도 틀리러 가 보겠다.']]},
+ {n:'다시 푸는 사람',h:()=>`복수전 도장에서 놓친 주문을 ${CFG2.endTrained}개 고치면…`,f:()=>(sv.trained||0)>=CFG2.endTrained,
+  epi:'복수전 도장 구석에서 7×8을 풀고 있는 어른이 자주 보인다고 한다.',
+  l:[['제로','네 다시 도전 수첩을 봤다. 놓친 주문이… 하나씩 지워져 있더군.'],['제로','지우개로 지운 게 아니다. 다시 풀어서 지운 거야. 나는 그 차이를 몰랐다.'],['제로','가르쳐 다오. 틀린 문제를 다시 마주하는 법을.'],['','그 뒤로 복수전 도장 구석에서 7×8을 풀고 있는 어른이 자주 보였다고 한다.']]},
+ {n:'멈추지 않는 셈',h:()=>`주문을 ${CFG2.endStreak}번 이어서 성공하면…`,f:()=>(sv.bestStreak||0)>=CFG2.endStreak,
+  epi:'제로는 수리 마을 수업에서 처음으로 손을 들었다.',
+  l:[['제로','틀릴까 봐 손을 내린 나와, 틀려도 손을 내리지 않은 너.'],['제로','서른 번을 이어 맞히는 동안에도 너는 틀리는 걸 두려워하지 않았겠지. 그래서 이어진 거다.'],['제로','지우개단은 해산이다. 나도 다시 손을 들어 보겠다. 한 번이라도.']]},
+ {n:'탑 꼭대기의 바람',h:()=>`수련의 탑 ${CFG2.endTower}층에 오르면…`,f:()=>(sv.towerBest||0)>=CFG2.endTower,
+  epi:'수련의 탑 1층에서 검은 옷을 입은 도전자가 자주 보인다고 한다.',
+  l:[['제로','수련의 탑을 그렇게 높이 올랐다면, 그만큼 떨어지기도 했겠지.'],['제로','떨어진 층마다 다시 올라갔다니… 나는 1층에서 내려온 뒤로 다시 오르지 않았다.'],['제로','지우개단은 해산이다. 나도 1층부터 다시 올라가 보겠다.']]},
+ {n:'도감의 끝',h:()=>`도감을 ${Math.round(CFG2.endDexAll*100)}% 채우면…`,f:()=>dexRate()>=CFG2.endDexAll,
+  epi:'제로는 박사의 조수가 되어 새 수호수를 찾아다닌다.',
+  l:[['제로','이렇게 많은 수호수를 만났나. 박사님 도감보다 두껍군.'],['수리 박사','제로, 아직 이름 없는 수호수가 많단다. 함께 찾아 주겠니?'],['제로','…결정을 지우는 연구 말고, 수호수를 찾는 연구라면. 해 보겠습니다, 박사님.']]},
+ {n:'수호수의 친구',h:()=>`도감을 절반 넘게 채우면…`,f:()=>dexRate()>=CFG2.endDexHalf,
+  epi:'제로는 쉼터에서 지친 수호수들을 돌본다.',
+  l:[['','내 수호수들이 쓰러진 제로의 수호수 곁으로 모여든다.'],['제로','…수호수는 내가 틀려도 웃지 않았지. 그래서 좋아했던 건데, 잊고 있었다.'],['제로','이렇게 많은 수호수가 너를 따르는군. 네가 몇 번을 틀려도 말이야.'],['제로','쉼터에 일손이 필요하다더군. 지우는 일 말고, 돌보는 일을 해 보겠다.']]},
+ {n:'반짝이는 동료',h:()=>'아주 드문 색의 수호수를 동료로 삼으면…',f:()=>sv.party.concat(sv.box).some(m=>m.shiny),
+  epi:'제로는 검은 옷 위에 반짝이는 단추 하나를 달았다.',
+  l:[['','반짝이는 내 수호수가 제로 앞으로 다가갔다.'],['제로','그 수호수, 색이 다르군.'],['제로','남들과 달라도 틀린 게 아니지. …누가 나한테도 그렇게 말해 주길 바랐다.'],['제로','지우개단은 해산이다. 나도 다른 색으로 살아 보겠다.']]},
+ {n:'알을 품은 사람',h:()=>`알을 ${CFG2.endEggs}개 깨우면…`,f:()=>(sv.eggGiven||0)-(sv.eggs||[]).length>=CFG2.endEggs,
+  epi:'제로는 알을 품고 천천히 걷는다. 답을 기다리는 법을 배우는 중이다.',
+  l:[['제로','알을 다섯 개나 깨웠다고? 기다리는 건 지루했을 텐데.'],['제로','답도 그렇게 기다리면 깨어나는 걸까. 서두르지 않고.'],['','제로는 쉼터지기에게 알 하나를 맡아 가겠다고 했다.']]},
+ {n:'첫 동료와 끝까지',h:()=>'첫 동료를 끝까지 진화시켜 맨 앞에 세우면…',f:firstToEnd,
+  epi:'제로는 연구소에서 오래 기다린 첫 수호수를 다시 만났다.',
+  l:[['제로','처음 받은 수호수와 끝까지 왔나.'],['제로','내 첫 수호수는 연구소에 두고 왔다. 틀린 날의 나를 보는 게 싫어서.'],['수리 박사','그 아이, 아직도 네 자리에서 기다린단다.'],['제로','…지우개단은 해산이다. 데리러 가야겠군.']]},
+ {n:'모두의 챔피언',h:()=>`길가와 수련관의 트레이너를 ${CFG2.endTrainers}번 이기면…`,f:()=>Object.keys(sv.trainers).length+(sv.trRe||0)>=CFG2.endTrainers,
+  epi:'지우개단 단원들은 길가 수련생이 되어 오늘도 승부를 건다.',
+  l:[['제로','너한테 진 수련생들이 다들 웃고 있더군. 왜지?'],['수련생 지호','다시 붙으면 되니까요! 지는 것도 수련이에요.'],['제로','…지우개단 아이들도 그렇게 웃게 해 주고 싶었다. 해산하자. 다들 수련생이 되어라.']]},
+ {n:'멋쟁이 챔피언',h:()=>`상점에서 옷을 ${CFG2.endWear}벌 사면…`,f:()=>Object.keys(WEAR).filter(id=>WEAR[id].p>0&&sv.wardrobe[id]).length>=CFG2.endWear,
+  epi:'지우개단의 검은 옷은 옷장 깊숙이 들어갔다.',
+  l:[['제로','옷이 매번 바뀌는군. 우리는 늘 같은 검은 옷이었는데.'],['제로','틀린 날의 나를 숨기려고 입은 옷이었다. 이제 벗어도 되겠지.'],['','다음 날, 제로가 연한 하늘색 옷을 입고 나타났다.']]},
+ {n:'오래 걸어온 길',h:()=>`모험을 시작하고 ${CFG2.endDays}일이 지나면…`,f:()=>Date.now()-(sv.created||Date.now())>=CFG2.endDays*864e5,
+  epi:'제로는 서두르지 않고 걷는 법을 배웠다.',
+  l:[['제로','첫걸음이 언제였지? 꽤 오래 걸렸군.'],['제로','천천히 걸어도 끝에 닿는구나. 나는 빨리 맞히는 것만 생각했다.'],['제로','지우개단은 해산이다. 나도 천천히 걸어 보겠다.']]},
+ {n:'지우개를 내려놓다',h:()=>'지우개단을 물리치면 볼 수 있어요.',f:()=>true,
+  epi:'지우개단은 해산했다. 제로는 아직 어딘가에서 다시 풀 용기를 모으고 있다.',
+  l:()=>[['제로','결정의 빛이 지워지지 않는군. 네가 다시 푼 길이 전부 이 안에 있다.'],['제로','지우개단은 해산이다. 하지만 나는 아직 다시 풀 용기가 없다.'],['','제로는 전당 계단 아래로 사라졌다.'],['수리 박사',pagesN()<ZERO_PAGES.length?'제로도… 언젠가 돌아올 거야. 찢어진 공책이 아직 어딘가에 남아 있으니까.':'제로도… 언젠가 돌아올 거야.']]},
+ {n:'오답 축제',h:()=>'다른 엔딩을 모두 보면…',f:()=>ENDINGS.slice(0,-1).every((e,k)=>(sv.endings||{})[k+1]),
+  epi:'수리 마을에는 해마다 오답 축제가 열린다.',
+  l:()=>{const f=FEST_G[GRADE]||FEST_G[5],w=gradeWrong()[0],un=w&&UNIT_NAME[TOPIC_UNIT[w.tp]];
+   return[['수리 박사','오늘은 수리 마을 첫 「오답 축제」란다! 가장 멋지게 틀린 답을 자랑하는 날이지.'],['제로','1번 참가자, 제로. 3학년 때 7×8을 54라고 했다.'],['간부 소거',f[0]],['간부 말소',f[1]],['한별',f[2]],
+    ['제로','__NAME__, 너도 하나 말해 봐. 네 다시 도전 수첩에서 제일 아끼는 오답으로.'],
+    [sv.name,un?`「${un}」 문제에서 틀렸던 거요! 그때는 몰랐지만, 지금은 다시 풀 수 있어요.`:'놓친 주문을 다 다시 풀어서 수첩이 비었어요! 그래도 처음엔 정말 많이 틀렸어요.'],
+    ['','모두가 크게 웃었다. 틀린 답 하나하나에 박수가 쏟아졌다.'],['제로','틀린 답이 이렇게 반짝이는 줄 몰랐다. 내년에도 열자.']];}}
 ];
+// 엔딩 1·2·5·8·12를 본 뒤에는 제로가 연구소에 있다
+const LAB_ENDINGS=[1,2,5,8,12];
+const endingsReady=()=>ENDINGS.map((e,k)=>k+1).filter(id=>!(sv.endings||{})[id]&&ENDINGS[id-1].f());
 const stories=()=>{sv.story=sv.story||{g:{},seen:{}};return sv.story;};
 const nameIn=t=>t.replace(/__NAME__/g,sv.name);
 async function playLines(ls){for(const[w,t]of ls)await say(w,nameIn(t));}
@@ -3570,13 +3646,48 @@ async function guardEvent(i){
   const res=await battleScene({kind:'trainer',foes:gt,units:[REGIONS[i].unit],lvl:Math.min(2,1+Math.floor(i/5)),region:i,name:nm,ally});
   if(res==='win'){stories().g[i]=1;persist();await say(nm,s.guardWin);if(hb)await say('한별',hb.post);}
 }
-async function endingStory(){await playLines(ENDING_LINES);}
+/** 최종전: 간부 둘과의 2대2(한별과 함께), 그다음 단장 제로. 지면 제로가 전당 앞에서 기다리고, 2대2를 이긴 기록은 남는다 */
+async function finale(fromHall){
+  if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요. 먼저 회복해요!');
+  const W=i=>REGIONS[i].wild,lv=CFG2.finLv;
+  if(!sv.fin){
+    await playLines(fromHall?FINALE_PRE:FINALE_PRE.slice(1));
+    const foes=[[4,0,-2],[8,0,-2],[4,1,-1],[8,1,-1]].map(([i,k,d])=>({sp:rollSp(W(i)[k],lv+d),lv:lv+d})),aLv=lv-CFG2.allyLvDrop;
+    const res=await battleScene({kind:'elite',foes,units:ALL_UNITS,lvl:2,region:LAST_REGION,name:'간부 소거·말소',line:'지우개단 간부',ally:{sp:rollSp(RIVAL_STARTER[sv.starter]||4,aLv),lv:aLv}});
+    if(res!=='win')return;
+    sv.fin=1;persist();await playLines(FINALE_MID);
+  }else await say('단장 제로','왔구나. 이번엔 끝을 보자.');
+  const zt=[[11,0],[11,1],[9,0],[10,1],[12,0],[12,1]].map(([i,k],j)=>({sp:rollSp(W(i)[k],lv-3+j),lv:lv-3+j}));
+  const res=await battleScene({kind:'elite',foes:zt,units:ALL_UNITS,lvl:2,region:LAST_REGION,name:'단장 제로',line:'지우개단 단장'});
+  if(res!=='win')return;
+  sv.fin=2;persist();await say('제로','…졌다. 지우개가 다 닳았군.');
+  await playEnding(ENDINGS.findIndex(e=>e.f())+1);
+}
+async function playEnding(id){
+  const e=ENDINGS[id-1];await playLines(typeof e.l==='function'?e.l():e.l);
+  await say('수리 박사','고맙다. 수의 결정이 모두 돌아왔어. 세상의 시계가 다시 움직이는구나.');
+  (sv.endings=sv.endings||{})[id]=1;sv.endLast=id;persist();await showEnding(id);
+}
+/** 전당 앞의 제로: 최종전을 다시 하거나, 새로 조건을 채운 엔딩을 보여 준다 */
+async function zeroHall(){
+  if((sv.fin||0)<2){await say('단장 제로','…다시 왔나. 열두 결정의 빛은 아직 내 손에 있다.');return finale(false);}
+  const r=endingsReady();
+  if(!r.length)return say('제로',pagesN()<ZERO_PAGES.length?'…공책? 그건 버리고 왔다. 어디에 떨어졌는지는 나도 모른다.':'네가 걸어온 길을 더 보여 다오. 다른 끝도 있을지 모르니까.');
+  const id=r.length>1?await ask(`<h3>제로와 이야기하기</h3><p>새로 볼 수 있는 엔딩이 ${r.length}개 있어요.</p>`,r.map(k=>({t:`엔딩 ${k} 「${ENDINGS[k-1].n}」`,v:k})).concat([{t:'다음에',v:0,cls:'gray'}]))
+    :await ask(`<h3>제로와 이야기하기</h3><p>새로 볼 수 있는 엔딩: 「${ENDINGS[r[0]-1].n}」</p>`,[{t:'이야기한다',v:r[0]},{t:'다음에',v:0,cls:'gray'}]);
+  if(!id)return;
+  await say('제로','…그날의 이야기를 다시 해 볼까. 이번엔 다른 끝으로.');await playEnding(id);
+}
 // 이야기 수첩
+function endBook(){
+  if(!sv.champ)return '';const seen=sv.endings||{},n=Object.keys(seen).length;
+  return `<div class="wnote"><b>🎬 엔딩 (${n} / ${ENDINGS.length})</b>${ENDINGS.map((e,k)=>seen[k+1]?`<br>${k+1}. ${e.n}`:`<br>${k+1}. <span style="opacity:.5">??? — ${e.h()}</span>`).join('')}<br><small>새 조건을 채우면 수호의 전당 앞의 제로에게 말을 걸어 봐요.</small></div>`;
+}
 function storyPage(back){
   const st=stories(),ch=[[0,'프롤로그','결정을 노리는 지우개단. 수리 박사에게 첫 수호수를 받고 모험을 시작했다.']];
   for(let i=1;i<=LAST_REGION;i++)if(st.seen[i])ch.push([i,REGIONS[i].name,(STORY[i].enter[0])+(sv.badges[i]?' 🏅 결정을 지켜 냈다.':'')]);
   const pg=st.pages||{},pn=Object.keys(pg).length,book=`<div class="wnote"><b>📓 제로의 찢어진 공책 (${pn} / ${ZERO_PAGES.length})</b>${pn?ZERO_PAGES.map((t,k)=>pg[k+1]?`<br>${k+1}. ${t}`:`<br>${k+1}. <span style="opacity:.5">??? (${REGIONS[k+1].name}에 떨어져 있다)</span>`).join(''):'<br>지역 곳곳에 누군가의 공책 쪽이 떨어져 있대요.'}</div>`;
-  page(`<div class="topbar"><h2>📕 이야기 수첩</h2></div><button class="btn wide" id="stOp" style="margin-bottom:8px">🎬 처음 장면 다시 보기</button>${book}${ch.map(c=>`<div class="wnote"><b>${c[1]}</b><br>${c[2]}</div>`).join('')}${sv.champ?'<div class="wnote"><b>에필로그</b><br>지우개단은 해산했고, 제로는 오답 공책을 다시 펼쳤다. 세상의 시계가 다시 움직인다.</div>':''}${backBtn()}`);
+  page(`<div class="topbar"><h2>📕 이야기 수첩</h2></div><button class="btn wide" id="stOp" style="margin-bottom:8px">🎬 처음 장면 다시 보기</button>${book}${ch.map(c=>`<div class="wnote"><b>${c[1]}</b><br>${c[2]}</div>`).join('')}${sv.endLast&&ENDINGS[sv.endLast-1]?`<div class="wnote"><b>에필로그 · ${ENDINGS[sv.endLast-1].n}</b><br>${ENDINGS[sv.endLast-1].epi}</div>`:''}${endBook()}${backBtn()}`);
   $('#pgB').onclick=back;$('#stOp').onclick=()=>cine(OPENING);
 }
 // ════════════════════════════════════════════════
@@ -4164,9 +4275,9 @@ function sanitizeSave(o){
   s.party=s.party.map(cleanSavedMon).filter(Boolean);s.box=(Array.isArray(s.box)?s.box:[]).map(cleanSavedMon).filter(Boolean);
   if(s.party.length>CFG.partyMax)s.box.push(...s.party.splice(CFG.partyMax));
   ['badges','visited','seen','caught','stats','trainers','dexGot'].forEach(k=>s[k]=plainObj(s[k]));
-  ['found','ach','rivals'].forEach(k=>{if(k in s)s[k]=plainObj(s[k]);});
+  ['found','ach','rivals','endings'].forEach(k=>{if(k in s)s[k]=plainObj(s[k]);});
   ['coins','ok','total','elite'].forEach(k=>s[k]=toNum(s[k]));
-  ['qn','wins','questDone','stepsTotal','maxCombo','towerBest','trained','evolved','glowed','streak','bestStreak','aw','tutN','eggGiven','townI'].forEach(k=>{if(k in s)s[k]=toNum(s[k]);});
+  ['qn','wins','questDone','stepsTotal','maxCombo','towerBest','trained','evolved','glowed','streak','bestStreak','aw','tutN','eggGiven','townI','trRe','fin','endLast'].forEach(k=>{if(k in s)s[k]=toNum(s[k]);});
   const inv={};Object.keys(plainObj(s.inv)).forEach(k=>{if(ITEMS[k])inv[k]=Math.max(0,Math.floor(toNum(s.inv[k])));});s.inv=inv;
   s.pos=s.pos&&Number.isInteger(s.pos.x)&&Number.isInteger(s.pos.y)?{x:s.pos.x,y:s.pos.y,dir:DIRS[s.pos.dir]?s.pos.dir:'down'}:null;
   s.wrong=(Array.isArray(s.wrong)?s.wrong:[]).filter(w=>w&&GEN[w.tp]).slice(0,CFG.wrongMax).map(w=>({tp:w.tp,q:cleanHtml(w.q),fig:cleanHtml(w.fig),a:cleanHtml(w.a),e:cleanHtml(w.e),at:toNum(w.at)}));
@@ -4558,7 +4669,7 @@ function buildMap(i){
   const addN=(o,a,b)=>{const p=spot(a,b);if(p)npcs.push({...o,x:p[0],y:p[1],face:o.k==='trainer'?['down','up','left','right'][Math.floor(rn()*4)]:'down'});};
   if(i>=1&&i<LAST_REGION){addN({k:'trainer',id:'a'},6,14);addN({k:'trainer',id:'b'},15,27);addN({k:'tip'},2,10);}
   if(i===0){addN({k:'guide'},2,9);addN({k:'tip'},10,18);}
-  if(i===LAST_REGION){addN({k:'legend'},22,28);addN({k:'guide2'},2,8);addN({k:'hbpost'},4,8);}
+  if(i===LAST_REGION){addN({k:'legend'},22,28);addN({k:'guide2'},2,8);addN({k:'hbpost'},4,8);addN({k:'zero2'},6,14);}
   // 길가의 덤불(배지 3개)과 바위(배지 6개): 치우면 안에 숨은 물건이 나온다. 다른 배치가 바뀌지 않게 맨 마지막에 놓는다
   const obst=[];if(i>=2&&i<LAST_REGION)obst.push(['bush',8,20]);if(i>=5&&i<LAST_REGION)obst.push(['rock',18,30]);
   if(RIVAL.at.includes(i))npcs.push({k:'rival',x:MW-2,y:midE});
@@ -4733,6 +4844,7 @@ function npcLook(n){
   if(n.k==='trainer')return trLook(TR_NAMES[(i*2+({a:0,b:1,g1:5,g2:7}[n.id]||0))%TR_NAMES.length]);
   if(n.k==='tip')return n.look||(n.look='vl'+(tHash(n.x+i*5,n.y+i*3)%VL_N));
   if(n.k==='grunt'&&STORY[i])return STORY[i].boss===2?'zero':STORY[i].boss?'gruntB':'grunt';
+  if(n.k==='zero2')return 'zero';
   return n.k;
 }
 let TALK_LOOK=null;
@@ -4741,7 +4853,7 @@ const DIRS={up:[0,-1],down:[0,1],left:[-1,0],right:[1,0]};
 const P={x:2,y:10,tx:2,ty:10,dir:'right',moving:false,t:0,anim:0,queued:null,safe:CFG.encounterGrace};
 const SPEED=5;let mode='title',busy=false,shiftRun=false,held=[],baked={},camX=0,camY=0;
 function blocked(x,y){const M=curMap(),w=M.w||MW,h=M.h||MH;if(x<0||y<0||x>=w||y>=h)return true;const c=M.g[y][x];if(c==='T'||c==='W'||c==='B'||INT_SOLID.includes(c))return true;return M.npcs.some(n=>n.x===x&&n.y===y&&npcVisible(n));}
-function npcVisible(n){if(n.k==='zero'||n.k==='hbpost')return !!sv.champ;if(n.k==='bush'||n.k==='rock')return !(sv.cleared||{})[sv.region+n.k];if(n.k==='legend')return sv.champ&&!sv.caught[LEGEND];if(n.k==='rival')return !!sv.badges[sv.region]&&!(sv.rivals||{})[sv.region];if(n.k==='grunt')return !stories().g[sv.region];return true;}
+function npcVisible(n){if(n.k==='zero')return LAB_ENDINGS.some(k=>(sv.endings||{})[k]);if(n.k==='hbpost'||n.k==='zero2')return !!sv.champ;if(n.k==='bush'||n.k==='rock')return !(sv.cleared||{})[sv.region+n.k];if(n.k==='legend')return (sv.fin||0)>=2&&!sv.caught[LEGEND];if(n.k==='rival')return !!sv.badges[sv.region]&&!(sv.rivals||{})[sv.region];if(n.k==='grunt')return !stories().g[sv.region];return true;}
 function enterRegion(i,from){
   IN=null;sv.region=i;sv.visited[i]=1;const M=getMap(i);
   if(from==='W'){P.x=0;P.y=M.midW;P.dir='right';}else if(from==='E'){P.x=MW-1;P.y=M.midE;P.dir='left';}
@@ -4853,11 +4965,12 @@ async function hallEvent(){
     sv.elite++;persist();
     if(sv.elite<ELITES.length){const go=await ask(`<h3>🏆 ${e.name} 승리!</h3><p>다음 상대: ${ELITES[sv.elite].name}<br>동료의 HP를 조금 회복했어요. 계속할까요?</p>`,[{t:'계속 간다!',v:1},{t:'잠깐 쉴래요 (진행 유지)',v:0,cls:'gray'}]);sv.party.forEach(m=>{const mx=statOf(m).hp;if(m.hp>0)m.hp=Math.min(mx,m.hp+Math.round(mx*.25));});if(!go)return;}
   }
-  sv.champ=true;sv.elite=0;persist();await endingStory();await showEnding();
+  sv.champ=true;sv.elite=0;persist();
+  if((sv.fin||0)<2)await finale(true);else await say('챔피언 아라','또 와 주었구나. 오늘도 멋진 승부였어!');
 }
-async function showEnding(){
-  const acc=sv.total?Math.round(sv.ok/sv.total*100):0;
-  await ask(`<div class="scene"><h2>👑 챔피언 탄생!</h2>${monSVG(LEGEND)}<p>${esc(sv.name)} 님이 열두 결정을 모두 지켜 냈어요!</p><p>푼 주문 ${sv.total}개 · 성공률 ${acc}%<br>도감 ${Object.keys(sv.caught).length} / ${SP.length-1}종</p><p class="note">전당 앞에 전설의 빛이 나타났대요…</p></div>`,[{t:'계속 모험하기',v:1}]);
+async function showEnding(id){
+  const acc=sv.total?Math.round(sv.ok/sv.total*100):0,n=Object.keys(sv.endings||{}).length;
+  await ask(`<div class="scene"><h2>${n>1?'🎬 새 엔딩!':'👑 챔피언 탄생!'}</h2>${monSVG(LEGEND)}<h3>엔딩 ${id} 「${ENDINGS[id-1].n}」</h3><p class="note">모은 엔딩 ${n} / ${ENDINGS.length}</p><p>${esc(sv.name)} 님이 지우개단을 물리치고 열두 결정을 모두 지켜 냈어요!</p><p>푼 주문 ${sv.total}개 · 성공률 ${acc}%<br>도감 ${Object.keys(sv.caught).length} / ${SP.length-1}종</p><p class="note">${sv.caught[LEGEND]?'이야기 수첩에서 다른 엔딩의 힌트를 볼 수 있어요.':'전당 앞에 전설의 빛이 나타났대요…'}</p></div>`,[{t:'계속 모험하기',v:1}]);
 }
 // ── 대화 ──
 const D={active:false,res:null};
@@ -4877,6 +4990,7 @@ async function npcEvent(n){
     if(have<need)return say('',bush?`빽빽한 덤불이 가로막고 있다. 배지 ${need}개를 모으면 헤칠 수 있을 것 같다.`:`커다란 바위가 가로막고 있다. 배지 ${need}개를 모으면 밀어낼 수 있을 것 같다.`);
     const m=sv.party[firstAlive(sv.party)];(sv.cleared=sv.cleared||{})[i+n.k]=1;const[k,c]=bush?['orb2',2]:['orb3',1];sv.inv[k]=(sv.inv[k]||0)+c;persist();sfx('catch');
     return say('',`${nameOf(m)}${hj(nameOf(m),'이가')} ${bush?'덤불을 헤쳤다!':'바위를 힘껏 밀어냈다!'}\n그 자리에서 ${ITEMS[k].ic} ${ITEMS[k].n} ${c}개를 찾았다!`);}
+  if(n.k==='zero2')return zeroHall();
   if(n.k==='hbpost')return say('한별','다음 대회는 내가 이길 거야. 그러니까… 계속 같이 수련하자!');
   if(n.k==='guide2')return say('문지기','위쪽 전당에서 가장 강한 수호자들이 기다려요.');
   if(n.k==='legend'){if(firstAlive(sv.party)<0)return say('','동료들이 지쳐 있어요.');await say('','열두 결정의 빛이 한곳에 모인다… 빛 속에서 거대한 수호수가 모습을 드러냈다!');await say('수리 박사','모든 수의 근원이라 불리는 수호수야. 네가 틀리고 다시 푼 모든 길을 보고 온 거란다.');const res=await battleScene({kind:'wild',foes:[{sp:LEGEND,lv:60}],units:[1,2,3,4,5,6,7,8,9,10,11,12],lvl:2,region:LAST_REGION});if(res==='catch'||res==='win'){sv.legend=true;persist();}if(res==='win')await say('','수호의 근원이 빛 속으로 물러났다.\n다시 다가가면 또 만날 수 있을 것 같다.');return;}
@@ -4889,7 +5003,7 @@ async function npcEvent(n){
     await say(nm,again?'다시 만났네! 그동안 나도 수련했어. 한 판 더 하자!':pick(TR_LINES));
     const solo=n.id==='a'||n.id==='g1',lv=Math.min(CFG.maxLevel,wildLv(i)+(solo?1:3)+(again?CFG2.rematchLv:0)),[x,y]=r.wild,team=solo?[{sp:rollSp(x,lv),lv}]:[{sp:rollSp(y,lv-1),lv:lv-1},{sp:rollSp(x,lv),lv}];
     const res=await battleScene({kind:'trainer',foes:team,units:[r.unit],lvl:1,region:i,name:nm});
-    if(res==='win'){sv.trainers[id]=Date.now();persist();await say(nm,again?'또 졌다! 내일 또 도전할 거야!':'졌다! 정말 강하구나!');}
+    if(res==='win'){if(again)sv.trRe=(sv.trRe||0)+1;sv.trainers[id]=Date.now();persist();await say(nm,again?'또 졌다! 내일 또 도전할 거야!':'졌다! 정말 강하구나!');}
   }
 }
 async function chooseStarter(){
@@ -4997,6 +5111,7 @@ function goalInfo(){
   const dex=Object.keys(sv.caught).filter(k=>sv.caught[k]).length;
   if(!sv.champ){const w=way(LAST_REGION);
     return{doo:'수호의 전당에서 수호자 넷과 챔피언에게 도전해요.',where:w||'수호의 전당 안쪽으로 들어가요.',tips:[`지금 ${sv.elite||0}/${ELITES.length}명 이김. 중간에 회복약을 쓸 수 있어요.`,'지면 처음부터 다시 도전해요.',...fly(LAST_REGION)]};}
+  if((sv.fin||0)<2)return{doo:'지우개단 단장 제로를 물리쳐요.',where:sv.region===LAST_REGION?'수호의 전당 앞에서 제로가 기다려요.':way(LAST_REGION),tips:[sv.fin?'간부 둘은 이미 물리쳤어요. 이제 제로만 남았어요!':'먼저 한별과 함께 간부 둘을 상대해요.','지면 쉼터로 돌아가요. 회복하고 다시 도전해요.',...fly(LAST_REGION)]};
   return{doo:'챔피언 달성! 더 해 볼 일을 골라요.',where:sv.caught[LEGEND]?'가 보고 싶은 곳 어디든 좋아요.':'수호의 전당 오른쪽에 전설의 수호수가 기다려요.',tips:[`도감 ${dex}/${SP.length-1}`,'모험 수첩의 수련의 탑, 길가 트레이너 재대결']};
 }
 function goalPanel(){
