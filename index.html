@@ -53,8 +53,8 @@ h2{font-size:20px;margin-bottom:8px}h3{font-size:17px;margin-bottom:6px}
 #hud>*{pointer-events:auto}
 .hchip{background:#0c0f2ae0;border:2px solid #e6e9f8;border-radius:5px;padding:3px 8px;font-size:13px;white-space:nowrap}
 .hbtns{display:flex;gap:4px}
-.tkey{background:none;border:0;padding:2px 4px;min-height:0;opacity:.75;cursor:pointer;flex:none}.tkey:hover{opacity:1}
-body:not(.tui) #hTeach,body:not(.tui) #bTeach,body:not(.tever) #hTeach{display:none!important} /* 게임 화면의 교사 버튼은 이 기기에서 교사 모드를 켜 본 적이 있을 때만 */
+.tkey{background:#2a2030;color:#ffd23f;border:2px solid #0c0f2a;border-radius:6px;padding:3px 6px;min-height:0;font-size:15px;white-space:nowrap;cursor:pointer;flex:none}.tkey:hover{background:#3a3048}
+body:not(.teach) #hTeach{display:none!important} /* 처음 화면의 🔑는 언제나 보인다(비밀번호로 막는다). 게임 화면의 교사 버튼은 교사 모드가 켜져 있을 때만 */
 #hTeach.on{background:#ffd23f!important;color:#2a2030!important}.hbtns button{background:#0c0f2ae0;border:2px solid #e6e9f8;border-radius:5px;padding:3px 9px;font-size:13px;color:#fff;min-height:34px}
 #pad{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;padding:6px 18px;touch-action:none}
 .dpad{display:grid;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(3,58px);gap:2px}
@@ -107,7 +107,7 @@ body.land #pad{background:none;pointer-events:none}body.land #pad>*{pointer-even
 /* 작은 세로 화면 (360×640 등): 그림과 숫자판을 조금 줄인다 */
 @media (orientation:portrait) and (max-height:700px){#battle.qm .fig svg{max-height:84px!important;width:auto}#battle.qm .key{min-height:38px!important}#battle.qm .qbox{padding:4px 10px;line-height:1.45}#battle.qm .ians{min-height:40px}#battle.qm .hintb{min-height:34px;padding:2px}#battle.qm #bpanel{gap:5px}#battle.qm .key.fn{font-size:10px;letter-spacing:-.8px}}
 #bmsg{min-height:56px;font-size:16px;cursor:pointer}
-body.teach::after{content:'🔑 교사 모드';position:fixed;left:50%;top:0;transform:translateX(-50%);z-index:60;padding:0 6px;border-radius:0 0 6px 6px;background:#2a2030b0;color:#ffd23f;font-size:10px;line-height:15px;pointer-events:none}
+body.teach::after{content:'🔑';position:fixed;left:50%;top:0;transform:translateX(-50%);z-index:60;padding:0 6px;border-radius:0 0 6px 6px;background:#2a2030b0;color:#ffd23f;font-size:10px;line-height:15px;pointer-events:none}
 .moves{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .mv{background:var(--pap);color:var(--ink);border:3px solid var(--ink);border-bottom-width:5px;border-radius:6px;padding:6px 8px;text-align:left;min-height:62px;font-size:14px;line-height:1.3}
 .mv:active{transform:translateY(2px);border-bottom-width:3px}.mv:disabled{opacity:.45}
@@ -425,7 +425,7 @@ body.land #pad{opacity:.6}
 
   <section id="world" class="scr">
     <div id="view"><canvas id="cv" width="240" height="160"></canvas>
-      <div id="hud"><div class="hchip" id="hInfo"></div><div class="hbtns"><button id="hTeach" aria-label="교사 모드">🔑 교사</button><button id="hRun" aria-label="달리기">🚶</button><button id="hMap">🗺️</button><button id="hMenu">☰ 메뉴</button></div></div>
+      <div id="hud"><div class="hchip" id="hInfo"></div><div class="hbtns"><button id="hTeach" aria-label="교사 모드">🔑</button><button id="hRun" aria-label="달리기">🚶</button><button id="hMap">🗺️</button><button id="hMenu">☰ 메뉴</button></div></div>
     </div>
     <div id="dlg" class="win"><img id="dFace" alt=""><span class="who" id="dWho"></span><span id="dText"></span> <span class="more">▼</span></div>
     <div id="pad"><div class="dpad"><button data-d="up" aria-label="위">▲</button><button data-d="left" aria-label="왼쪽">◀</button><button data-d="right" aria-label="오른쪽">▶</button><button data-d="down" aria-label="아래">▼</button></div><button id="btnA">확인</button></div>
@@ -4279,7 +4279,7 @@ let textMode=0;
 // 비밀번호는 해시로만 둔다 (코드를 열어 봐도 바로 보이지 않게)
 const TEACHER_H='1oir8gh',pwHash=t=>{let h=2166136261;for(const c of 'suhosu:'+t){h^=c.codePointAt(0);h=Math.imul(h,16777619)>>>0;}return h.toString(36);};let teacher=false,teacherUI=false;
 const teacherPass=()=>teacher&&!(typeof B!=='undefined'&&B&&B.online);
-function setTeacher(on){teacher=on;try{localStorage.setItem(SKEY+'.teacher',on?'1':'0');if(on)localStorage.setItem(SKEY+'.teachEver','1');}catch(e){}if(on)document.body.classList.add('tever');document.body.classList.toggle('teach',on);const b=$('#hTeach');if(b){b.classList.toggle('on',on);b.innerHTML=on?'🔑 교사 ON':'🔑 교사';pxWalk(b);}}
+function setTeacher(on){teacher=on;if(on)teacherUI=true;try{localStorage.setItem(SKEY+'.teacher',on?'1':'0');if(on){localStorage.setItem(SKEY+'.teachEver','1');localStorage.setItem(SKEY+'.tui','1');}}catch(e){}if(on)document.body.classList.add('tever','tui');document.body.classList.toggle('teach',on);const b=$('#hTeach');if(b){b.classList.toggle('on',on);b.innerHTML='🔑';pxWalk(b);}}
 /** 화면 위 교사 버튼: 켤 때는 비밀번호를 묻고, 끌 때는 바로 끈다 */
 async function quickTeacher(){if(teacher){setTeacher(false);toast('교사 모드를 껐어요.');return;}if(await teacherPrompt()){setTeacher(true);toast('🔑 교사 모드를 켰어요. 전투에서 문제가 나오지 않아요.',2600);}}
 /** 글자를 한 자씩 보여 준다. finish()를 부르면 바로 다 보여 준다 */
@@ -5009,7 +5009,7 @@ function morePage(){
 }
 function setPage(){
   const sp=['보통','빠름','바로'][textMode];
-  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['cloud',`☁️ 백업 코드: ${cloudOk(sv.cloud)?cloudFmt(sv.cloud):'아직 없음'}`,'눌러서 지금 온라인 백업해요. 기기가 바뀌면 처음 화면의 저장 코드에서 이 코드로 불러와요.'],['bspd',`전투 속도: ${['보통','빠르게','아주 빠르게'][battleSpeed]}`,'전투 연출과 메시지가 넘어가는 시간을 줄여요.'],...(teacher?[['units','📚 배운 단원 고르기',`아직 안 배운 단원을 끄면 그 단원 문제가 나오지 않아요. (켜짐 ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length})`]]:[]),...(teacherUI&&document.body.classList.contains('tever')?[['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.']]:[]),['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
+  listMenu([['snd',`소리: ${muted?'끔':'켬'}`,'효과음과 음악을 켜거나 꺼요.'],['txt',`글자 속도: ${sp}`,'대화 글자가 나오는 속도를 바꿔요.'],['cloud',`☁️ 백업 코드: ${cloudOk(sv.cloud)?cloudFmt(sv.cloud):'아직 없음'}`,'눌러서 지금 온라인 백업해요. 기기가 바뀌면 처음 화면의 저장 코드에서 이 코드로 불러와요.'],['bspd',`전투 속도: ${['보통','빠르게','아주 빠르게'][battleSpeed]}`,'전투 연출과 메시지가 넘어가는 시간을 줄여요.'],...(teacher?[['units','📚 배운 단원 고르기',`아직 안 배운 단원을 끄면 그 단원 문제가 나오지 않아요. (켜짐 ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length})`]]:[]),...(teacher?[['teach',`🔑 교사 모드: ${teacher?'켬':'끔'}`,teacher?'끄면 다시 전투에서 주문 문제가 나와요.':'선생님 비밀번호로 켜요. 전투와 진화를 문제 없이 진행해요.']]:[]),['title','저장하고 처음으로','저장한 뒤 처음 화면으로 돌아가요.'],['back','돌아가기','메뉴로 돌아가요.']],async g=>{
     if(g==='cloud'){toast('☁️ 백업 중…');const c=await cloudBackup(true);persist();if(c){const pr=ask(`<h3>☁️ 백업했어요</h3><p class="note">아래 백업 코드를 복사해 두세요. 기기가 바뀌면 처음 화면 → 📦 저장 코드에서 이 코드로 불러와요.</p>${cloudCopyBox(c)}`,[{t:'확인',v:1}]);cloudCopyBind();await pr;}else toast('인터넷에 연결되지 않아 백업하지 못했어요.',3200);setPage();}
     if(g==='bspd'){battleSpeed=(battleSpeed+1)%3;try{localStorage.setItem(SKEY+'.bspd',battleSpeed);}catch(e){}setPage();}
     if(g==='units')unitsPage();
@@ -5040,7 +5040,7 @@ function unitsPage(back=setPage){
 async function titleTeacher(){
   if(!teacher){if(!await teacherPrompt())return;setTeacher(true);toast('🔑 교사 모드를 켰어요.');}
   const toTitle=()=>{renderTitle();showScr('title');};
-  const c=await ask(`<h3>🔑 선생님 설정</h3><p class="note">교사 모드가 켜져 있어요. 전투·진화에서 문제가 나오지 않아요.<br>배운 단원: ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length}개 켜짐<br>학생 화면에는 🔑 버튼이 보이지 않아요. 다른 기기에서는 주소 끝에 <b>?teacher</b>를 붙여 열면 보여요.</p>`,[{t:'📚 배운 단원 고르기',v:'u',cls:'blue'},{t:'교사 모드 끄기',v:'off',cls:'gray'},{t:'닫기',v:'',cls:'gray'}]);
+  const c=await ask(`<h3>🔑 선생님 설정</h3><p class="note">교사 모드가 켜져 있어요. 전투·진화에서 문제가 나오지 않아요.<br>배운 단원: ${ALL_UNITS.length-UNITS_OFF.size} / ${ALL_UNITS.length}개 켜짐<br>처음 화면의 🔑로 언제든 켜고 끌 수 있어요. 게임 화면의 🔑 버튼은 교사 모드가 켜져 있을 때만 보여요.</p>`,[{t:'📚 배운 단원 고르기',v:'u',cls:'blue'},{t:'교사 모드 끄기',v:'off',cls:'gray'},{t:'닫기',v:'',cls:'gray'}]);
   if(c==='u')unitsPage(toTitle);if(c==='off'){setTeacher(false);toast('교사 모드를 껐어요.');}
 }
 /** 교사 비밀번호를 받는다. 맞으면 true */
